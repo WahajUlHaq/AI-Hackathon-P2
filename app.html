@@ -80,10 +80,48 @@ textarea{resize:vertical;font-family:"Cascadia Code","Fira Code",Consolas,monosp
 .status-badge.done{background:rgba(63,185,80,.15);color:var(--green);}
 .status-badge.error{background:rgba(248,81,73,.15);color:var(--red);}
 
+/* RATE LIMIT BAR */
+.rl-bar{background:var(--sur);border:1px solid var(--brd);border-radius:7px;padding:.6rem .8rem;margin-bottom:.8rem;}
+.rl-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;}
+.rl-title{font-size:.72rem;font-weight:700;color:var(--muted);}
+.rl-count{font-size:.72rem;font-weight:800;}
+.rl-count.ok{color:var(--green);}
+.rl-count.warn{color:var(--yellow);}
+.rl-count.full{color:var(--red);}
+.rl-track{height:6px;background:var(--sur2);border-radius:3px;overflow:hidden;margin-bottom:.35rem;}
+.rl-fill{height:100%;border-radius:3px;transition:width .4s,background .4s;}
+.rl-reset{font-size:.68rem;color:var(--muted);}
+.rl-blocked{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);border-radius:7px;padding:.6rem .8rem;margin-bottom:.8rem;text-align:center;}
+.rl-blocked-title{font-size:.85rem;font-weight:800;color:var(--red);margin-bottom:.3rem;}
+.rl-blocked-msg{font-size:.75rem;color:var(--muted);margin-bottom:.5rem;}
+.rl-countdown{font-size:1.1rem;font-weight:800;color:var(--red);font-family:"Cascadia Code",Consolas,monospace;}
+
 /* CURRENT STATE BOX */
-.state-box{background:var(--sur);border:1px solid var(--brd);border-radius:6px;margin-top:.8rem;overflow:hidden;}
-.state-box-head{padding:.45rem .7rem;background:var(--sur2);font-size:.72rem;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
-.state-box-body{padding:.6rem;font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.68rem;color:var(--muted);max-height:140px;overflow-y:auto;display:none;}
+.state-box{background:var(--sur);border:1px solid var(--brd);border-radius:7px;margin-top:.8rem;overflow:hidden;}
+.state-box-head{padding:.55rem .8rem;background:var(--sur2);font-size:.72rem;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.state-box-body{padding:.7rem;display:none;}
+.state-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.6rem;}
+.state-kpi{background:var(--sur2);border:1px solid var(--brd);border-radius:5px;padding:.45rem .6rem;}
+.state-kpi-label{font-size:.65rem;color:var(--muted);margin-bottom:.15rem;}
+.state-kpi-val{font-size:.88rem;font-weight:800;}
+.state-kpi-val.danger{color:var(--red);}
+.state-kpi-val.ok{color:var(--green);}
+.state-kpi-val.warn{color:var(--yellow);}
+.state-section-h{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:.55rem 0 .3rem;}
+.dc-card{background:var(--sur2);border:1px solid var(--brd);border-radius:5px;padding:.5rem .6rem;margin-bottom:.35rem;}
+.dc-name{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.3px;}
+.sku-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.2rem;font-size:.68rem;}
+.sku-name{color:var(--muted);flex-shrink:0;width:72px;}
+.sku-bar-bg{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.sku-bar-fill{height:100%;border-radius:3px;}
+.sku-qty{color:var(--text);font-weight:700;flex-shrink:0;min-width:32px;text-align:right;}
+.route-row{display:flex;align-items:center;justify-content:space-between;padding:.3rem .5rem;background:var(--sur2);border:1px solid var(--brd);border-radius:4px;margin-bottom:.25rem;font-size:.68rem;}
+.route-name{color:var(--text);font-weight:600;}
+.route-status{border-radius:3px;padding:.08rem .4rem;font-size:.62rem;font-weight:700;}
+.rs-disrupted{background:rgba(248,81,73,.2);color:var(--red);}
+.rs-available{background:rgba(63,185,80,.2);color:var(--green);}
+.rs-rerouted{background:rgba(210,153,34,.2);color:var(--yellow);}
+.route-eta{color:var(--muted);margin-left:.4rem;}
 
 /* CENTER: SSE STREAM */
 .sse-empty{text-align:center;color:var(--muted);padding:3rem 1rem;font-size:.82rem;}
@@ -314,6 +352,24 @@ hr.divider{border:none;border-top:1px solid var(--brd);margin:.8rem 0;}
 
       <hr class="divider"/>
 
+      <!-- Rate Limit Bar -->
+      <div id="rl-bar-wrap">
+        <div class="rl-bar" id="rl-bar">
+          <div class="rl-bar-top">
+            <span class="rl-title">🔒 Hourly Quota</span>
+            <span class="rl-count ok" id="rl-count">0 / 6 used</span>
+          </div>
+          <div class="rl-track"><div class="rl-fill" id="rl-fill" style="width:0%;background:var(--green);"></div></div>
+          <div class="rl-reset" id="rl-reset">Resets every hour</div>
+        </div>
+        <div class="rl-blocked" id="rl-blocked" style="display:none;">
+          <div class="rl-blocked-title">⏱ Hourly limit reached</div>
+          <div class="rl-blocked-msg">You've used all 6 requests for this hour.</div>
+          <div class="rl-countdown" id="rl-countdown">—</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:.3rem;">Come back when the timer hits 00:00</div>
+        </div>
+      </div>
+
       <!-- Sources container -->
       <div id="sources-container"></div>
       <button class="btn-add" onclick="addSource()">+ Add Source</button>
@@ -321,10 +377,12 @@ hr.divider{border:none;border-top:1px solid var(--brd);margin:.8rem 0;}
       <!-- Current State -->
       <div class="state-box">
         <div class="state-box-head" onclick="toggleStateBox()">
-          <span>📊 Current System State</span>
+          <span>📊 System State Snapshot</span>
           <span id="state-chevron">▶</span>
         </div>
-        <pre class="state-box-body" id="state-box-body">—</pre>
+        <div class="state-box-body" id="state-box-body">
+          <div style="color:var(--muted);font-size:.72rem;text-align:center;padding:.5rem;">Click to load state</div>
+        </div>
       </div>
 
     </div>
@@ -395,13 +453,14 @@ let sourceCount = 0;
 let activeES = null;
 let analyzeData = null;
 let rawOpen = false;
+let _rlCountdownTimer = null;
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   refreshSessionId();
   addSource();
   checkHealth();
-  loadCurrentState();
+  syncRateLimit();   // load quota from backend (non-destructive)
   // Fix docs link — on Render, docs are served at /docs (FastAPI OpenAPI UI)
   const docsLink = document.getElementById('docs-link');
   if (docsLink) docsLink.href = BASE + '/docs';
@@ -427,15 +486,186 @@ async function checkHealth() {
   }
 }
 
-// ── CURRENT STATE ────────────────────────────────────────────────────────────
-async function loadCurrentState() {
+// ── RATE LIMIT ────────────────────────────────────────────────────────────────
+const RL_KEY = 'chainsight_rl';  // localStorage key
+
+function _saveRL(used, resetUnix) {
+  localStorage.setItem(RL_KEY, JSON.stringify({ used, resetUnix }));
+}
+
+function _loadRL() {
   try {
-    const r = await fetch(BASE + '/api/state');
+    const d = JSON.parse(localStorage.getItem(RL_KEY) || '{}');
+    const now = Math.floor(Date.now() / 1000);
+    // If reset time has passed, clear stored count
+    if (d.resetUnix && now >= d.resetUnix) {
+      localStorage.removeItem(RL_KEY);
+      return { used: 0, resetUnix: null };
+    }
+    return { used: d.used || 0, resetUnix: d.resetUnix || null };
+  } catch { return { used: 0, resetUnix: null }; }
+}
+
+function updateRLUI(used, limit, resetUnix) {
+  const pct = Math.min(100, (used / limit) * 100);
+  const remaining = Math.max(0, limit - used);
+  const barEl = document.getElementById('rl-bar');
+  const blockedEl = document.getElementById('rl-blocked');
+  const fillEl = document.getElementById('rl-fill');
+  const countEl = document.getElementById('rl-count');
+  const resetEl = document.getElementById('rl-reset');
+  const analyzeBtn = document.getElementById('analyze-btn');
+
+  const color = pct < 50 ? 'var(--green)' : pct < 84 ? 'var(--yellow)' : 'var(--red)';
+  const countClass = pct < 50 ? 'ok' : pct < 84 ? 'warn' : 'full';
+
+  fillEl.style.width = pct + '%';
+  fillEl.style.background = color;
+  countEl.textContent = `${used} / ${limit} used`;
+  countEl.className = 'rl-count ' + countClass;
+
+  if (resetUnix) {
+    const d = new Date(resetUnix * 1000);
+    resetEl.textContent = `Resets at ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  } else {
+    resetEl.textContent = 'Resets every hour';
+  }
+
+  if (used >= limit) {
+    // Blocked
+    barEl.style.display = 'none';
+    blockedEl.style.display = 'block';
+    analyzeBtn.disabled = true;
+    startCountdown(resetUnix);
+    toast(`⏱ Hourly limit reached — ${remaining} of ${limit} requests used. Try again when the timer hits 00:00.`, 'error');
+  } else {
+    barEl.style.display = 'block';
+    blockedEl.style.display = 'none';
+    analyzeBtn.disabled = false;
+    stopCountdown();
+    if (remaining === 1) {
+      toast(`⚠️ Last request remaining this hour!`, 'error');
+    }
+  }
+}
+
+function startCountdown(resetUnix) {
+  stopCountdown();
+  const el = document.getElementById('rl-countdown');
+  function tick() {
+    const now = Math.floor(Date.now() / 1000);
+    const secs = Math.max(0, resetUnix - now);
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    el.textContent = `${m}:${s}`;
+    if (secs === 0) {
+      stopCountdown();
+      // Auto-unblock
+      localStorage.removeItem(RL_KEY);
+      updateRLUI(0, 6, null);
+      toast('✅ Hourly quota reset — you can analyze again!', 'success');
+    }
+  }
+  tick();
+  _rlCountdownTimer = setInterval(tick, 1000);
+}
+
+function stopCountdown() {
+  if (_rlCountdownTimer) { clearInterval(_rlCountdownTimer); _rlCountdownTimer = null; }
+}
+
+async function syncRateLimit() {
+  // First apply whatever is in localStorage immediately (instant UI)
+  const local = _loadRL();
+  updateRLUI(local.used, 6, local.resetUnix);
+
+  // Then sync with backend for accurate server-side count
+  try {
+    const r = await fetch(BASE + '/api/rate-limit', { signal: AbortSignal.timeout(5000) });
     if (!r.ok) return;
     const d = await r.json();
-    const el = document.getElementById('state-box-body');
-    el.textContent = JSON.stringify(d, null, 2);
+    _saveRL(d.requests_used, d.reset_at_unix);
+    updateRLUI(d.requests_used, d.limit, d.reset_at_unix);
   } catch {}
+}
+
+// ── CURRENT STATE ────────────────────────────────────────────────────────────
+async function loadCurrentState() {
+  const body = document.getElementById('state-box-body');
+  body.innerHTML = '<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:.5rem;">Loading...</div>';
+  try {
+    const r = await fetch(BASE + '/api/state');
+    if (!r.ok) { body.innerHTML = '<div style="color:var(--red);font-size:.72rem;padding:.4rem;">Failed to load state</div>'; return; }
+    const d = await r.json();
+    body.innerHTML = renderStateVisual(d);
+  } catch (e) {
+    body.innerHTML = `<div style="color:var(--red);font-size:.72rem;padding:.4rem;">Error: ${escHtml(e.message)}</div>`;
+  }
+}
+
+function renderStateVisual(d) {
+  const penaltyUsd = d.penalty_exposure_usd || 0;
+  const holdingUsd = d.holding_cost_usd || 0;
+  const notifs = (d.notifications || []).length;
+  const ssActive = d.safety_stock_activated;
+
+  let html = `<div class="state-grid">
+    <div class="state-kpi">
+      <div class="state-kpi-label">Penalty Exposure</div>
+      <div class="state-kpi-val danger">$${penaltyUsd.toLocaleString()}</div>
+    </div>
+    <div class="state-kpi">
+      <div class="state-kpi-label">Holding Cost</div>
+      <div class="state-kpi-val warn">$${holdingUsd.toLocaleString()}</div>
+    </div>
+    <div class="state-kpi">
+      <div class="state-kpi-label">Notifications</div>
+      <div class="state-kpi-val ${notifs>0?'warn':'ok'}">${notifs}</div>
+    </div>
+    <div class="state-kpi">
+      <div class="state-kpi-label">Safety Stock</div>
+      <div class="state-kpi-val ${ssActive?'ok':''}"><span style="color:${ssActive?'var(--green)':'var(--muted)'}">${ssActive?'✅ Active':'Inactive'}</span></div>
+    </div>
+  </div>`;
+
+  // Inventory DCs
+  if (d.inventory && Object.keys(d.inventory).length) {
+    html += '<div class="state-section-h">Inventory</div>';
+    Object.entries(d.inventory).forEach(([dc, skus]) => {
+      html += `<div class="dc-card"><div class="dc-name">${escHtml(dc.replace(/_/g,' '))}</div>`;
+      // Find max qty for bar scaling
+      const vals = Object.values(skus).map(s => s.quantity || 0);
+      const maxQty = Math.max(1, ...vals);
+      Object.entries(skus).forEach(([sku, info]) => {
+        const qty = info.quantity || 0;
+        const pct = Math.round((qty / maxQty) * 100);
+        const barColor = qty < 200 ? 'var(--red)' : qty < 500 ? 'var(--yellow)' : 'var(--green)';
+        html += `<div class="sku-row">
+          <span class="sku-name">${escHtml(sku)}</span>
+          <div class="sku-bar-bg"><div class="sku-bar-fill" style="width:${pct}%;background:${barColor};"></div></div>
+          <span class="sku-qty">${qty}</span>
+        </div>`;
+      });
+      html += '</div>';
+    });
+  }
+
+  // Routes
+  if (d.routes && Object.keys(d.routes).length) {
+    html += '<div class="state-section-h">Routes</div>';
+    Object.entries(d.routes).forEach(([id, r]) => {
+      const sc = 'rs-' + (r.status || 'available');
+      html += `<div class="route-row">
+        <span class="route-name">${escHtml(r.name || id)}</span>
+        <span style="display:flex;align-items:center;gap:.3rem;">
+          <span class="route-status ${sc}">${r.status||'available'}</span>
+          <span class="route-eta">${r.eta_days}d</span>
+        </span>
+      </div>`;
+    });
+  }
+
+  return html;
 }
 
 function toggleStateBox() {
@@ -451,7 +681,7 @@ async function resetState() {
   try {
     await fetch(BASE + '/api/state/reset', { method: 'POST' });
     toast('State reset ✓', 'success');
-    loadCurrentState();
+    if (document.getElementById('state-box-body').style.display === 'block') loadCurrentState();
   } catch (e) {
     toast('Reset failed: ' + e.message, 'error');
   }
@@ -680,9 +910,34 @@ async function runAnalyze() {
       body: JSON.stringify({ session_id: sessionId, sources })
     });
 
+    // ── Handle rate limit 429 specially ──────────────────────────────────────
+    if (res.status === 429) {
+      if (activeES) { activeES.close(); activeES = null; }
+      let detail;
+      try { detail = (await res.json()).detail; } catch { detail = {}; }
+      const resetUnix = detail.reset_at_unix || null;
+      const used = detail.requests_used || 6;
+      _saveRL(used, resetUnix);
+      updateRLUI(used, detail.limit || 6, resetUnix);
+      setStatus('error');
+      const msg = detail.message || 'Hourly rate limit reached. Please wait.';
+      clearResultsError(msg);
+      appendSSEEvent('error', { message: msg });
+      return;
+    }
+
     if (!res.ok) {
       const errText = await res.text();
       throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
+    }
+
+    // ── Read rate-limit headers and update UI ─────────────────────────────────
+    const rlUsed = parseInt(res.headers.get('X-RateLimit-Used') || '0');
+    const rlLimit = parseInt(res.headers.get('X-RateLimit-Limit') || '6');
+    const rlReset = parseInt(res.headers.get('X-RateLimit-Reset') || '0');
+    if (rlUsed) {
+      _saveRL(rlUsed, rlReset || null);
+      updateRLUI(rlUsed, rlLimit, rlReset || null);
     }
 
     const data = await res.json();
@@ -690,7 +945,7 @@ async function runAnalyze() {
     renderResults(data);
     setStatus('done');
     toast('Analysis complete ✓', 'success');
-    loadCurrentState();
+    if (document.getElementById('state-box-body').style.display === 'block') loadCurrentState();
   } catch (e) {
     setStatus('error');
     appendSSEEvent('error', { message: e.message });
