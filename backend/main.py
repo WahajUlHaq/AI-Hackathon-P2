@@ -24,14 +24,16 @@ import asyncio
 import json
 import os
 import pathlib
+import time
 import uuid
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from sse_starlette.sse import EventSourceResponse
 
 # Repo root is one level above backend/
@@ -47,6 +49,60 @@ load_dotenv()
 
 # ── In-memory SSE queue store (session_id → asyncio.Queue) ───────────────────
 _sse_queues: dict[str, asyncio.Queue] = {}
+
+# ── IP Rate limiter (6 requests per hour per IP) ─────────────────────────────
+_RATE_LIMIT = 3
+_RATE_WINDOW = 4600  # 1 hour in seconds
+_ip_timestamps: dict[str, list[float]] = defaultdict(list)
+
+def _get_client_ip(request: Request) -> str:
+    """Extract real client IP, respecting X-Forwarded-For (Render proxy)."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+def _check_rate_limit(ip: str) -> dict:
+    """
+    Returns a dict with rate limit info.
+    Raises HTTPException 429 if limit exceeded.
+    """
+    now = time.time()
+    window_start = now - _RATE_WINDOW
+    # Prune old timestamps
+    _ip_timestamps[ip] = [t for t in _ip_timestamps[ip] if t > window_start]
+    used = len(_ip_timestamps[ip])
+
+    if used >= _RATE_LIMIT:
+        oldest = _ip_timestamps[ip][0]
+        retry_after = int(oldest + _RATE_WINDOW - now) + 1
+        reset_at_ts = oldest + _RATE_WINDOW
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "rate_limited",
+                "message": f"You have used all {_RATE_LIMIT} requests for this hour. Please wait.",
+                "requests_used": used,
+                "limit": _RATE_LIMIT,
+                "retry_after_seconds": retry_after,
+                "reset_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(reset_at_ts)),
+                "reset_at_unix": int(reset_at_ts),
+            }
+        )
+
+    # Record this request
+    _ip_timestamps[ip].append(now)
+    used += 1
+    oldest = _ip_timestamps[ip][0]
+    reset_at_ts = oldest + _RATE_WINDOW
+
+    return {
+        "requests_used": used,
+        "limit": _RATE_LIMIT,
+        "remaining": _RATE_LIMIT - used,
+        "reset_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(reset_at_ts)),
+        "reset_at_unix": int(reset_at_ts),
+    }
 
 
 @asynccontextmanager
@@ -69,6 +125,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-RateLimit-Used"],
 )
 
 # ── Mount sub-routers ─────────────────────────────────────────────────────────
@@ -159,21 +216,57 @@ async def _run_pipeline(session_id: str, req: AnalyzeRequest) -> AnalyzeResponse
 
 
 @app.post("/api/analyze", response_model=AnalyzeResponse, tags=["pipeline"])
-async def analyze(req: AnalyzeRequest):
+async def analyze(req: AnalyzeRequest, request: Request):
     """
     Run the full 4-agent pipeline synchronously.
+    Rate limited to 6 requests per hour per IP.
     For real-time trace, use GET /api/stream/{session_id} BEFORE calling this.
     """
+    ip = _get_client_ip(request)
+    rl = _check_rate_limit(ip)  # raises 429 if exceeded
+
     session_id = req.session_id or str(uuid.uuid4())
     req.session_id = session_id
     # Only create a new queue if SSE hasn't already registered one for this session.
-    # Creating a new queue here would orphan the generator that already holds a
-    # reference to the old queue object — events would never reach the SSE client.
     if session_id not in _sse_queues:
         _sse_queues[session_id] = asyncio.Queue()
     result = await _run_pipeline(session_id, req)
     _sse_queues.pop(session_id, None)
-    return result
+
+    # Attach rate-limit headers so the frontend can update its counter
+    from fastapi.responses import JSONResponse as _JSONResponse
+    import json as _json
+    response_data = _json.loads(result.model_dump_json())
+    headers = {
+        "X-RateLimit-Limit": str(rl["limit"]),
+        "X-RateLimit-Remaining": str(rl["remaining"]),
+        "X-RateLimit-Reset": str(rl["reset_at_unix"]),
+        "X-RateLimit-Used": str(rl["requests_used"]),
+    }
+    return _JSONResponse(content=response_data, headers=headers)
+
+
+@app.get("/api/rate-limit", tags=["system"])
+def rate_limit_status(request: Request):
+    """Return current rate-limit status for the calling IP (non-destructive, does not consume quota)."""
+    ip = _get_client_ip(request)
+    now = time.time()
+    window_start = now - _RATE_WINDOW
+    _ip_timestamps[ip] = [t for t in _ip_timestamps[ip] if t > window_start]
+    used = len(_ip_timestamps[ip])
+    remaining = max(0, _RATE_LIMIT - used)
+    if _ip_timestamps[ip]:
+        reset_at_ts = _ip_timestamps[ip][0] + _RATE_WINDOW
+    else:
+        reset_at_ts = now + _RATE_WINDOW
+    return {
+        "requests_used": used,
+        "limit": _RATE_LIMIT,
+        "remaining": remaining,
+        "reset_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(reset_at_ts)),
+        "reset_at_unix": int(reset_at_ts),
+        "window_seconds": _RATE_WINDOW,
+    }
 
 
 @app.get("/api/stream/{session_id}", tags=["pipeline"])
