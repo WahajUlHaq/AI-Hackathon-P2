@@ -1,0 +1,256 @@
+﻿{
+  "info": {
+    "name": "ChainSight API — Full Demo",
+    "description": "Agentic Supply Chain Intelligence — ChainSight Backend\n\nBase URL: http://localhost:8000\n\nQUICK START:\n1. Reset State\n2. Open SSE Stream (GET /api/stream/demo-session-001)\n3. Run any Analyze request\n4. Watch tool_call / tool_result events live\n\nSOURCE TYPES:\n  csv_json      → structured data, inventory counts, metrics\n  pdf_report    → PDF text or long-form reports (paste text or give URL)\n  news_article  → news/media reports about disruptions\n  dashboard     → ERP/TMS dashboard snapshots\n  realtime_feed → live alerts, IoT feeds, port authority updates\n\nCONFLICT DETECTION:\n  Send 2+ sources with contradicting numbers for the same metric.\n  e.g. one says delay 3 days, another says delay 7 days.\n  Parser scores credibility: realtime(0.92) > dashboard(0.85) > news(0.80) > pdf(0.75) > csv(0.70)\n  Resolution logged in parsed.contradictions[]",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "session_id", "value": "demo-session-001", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "0 — System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": { "method": "GET", "url": "{{base_url}}/health" }
+        },
+        {
+          "name": "Get Full State",
+          "request": { "method": "GET", "url": "{{base_url}}/state" }
+        },
+        {
+          "name": "Reset State (run first)",
+          "request": { "method": "POST", "url": "{{base_url}}/state/reset" }
+        },
+        {
+          "name": "SSE Stream (open before Analyze)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/stream/{{session_id}}",
+            "description": "Open BEFORE calling POST /api/analyze.\nEvents: orchestrator_start, tool_call, tool_result, orchestrator_done, pipeline_done, pipeline_error\nSet Postman request timeout to 0."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 — Single Source",
+      "item": [
+        {
+          "name": "Plain Text",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"content\": \"URGENT: Flooding on N-5 highway has closed the Lahore-Islamabad corridor. 320 pallets of SKU-D044 stranded at Rawalpindi. Road closure: 5 days. Islamabad DC has 1.8 days safety stock. Penalty: PKR 200/pallet/day after day 3.\",\n  \"content_type\": \"text\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "News Article Source",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"sources\": [\n    {\n      \"source_id\": \"news-1\",\n      \"source_type\": \"news_article\",\n      \"timestamp_utc\": \"2026-05-14T04:00:00Z\",\n      \"content\": \"DAWN NEWS: Port Qasim workers strike entered day 3. Union demands 40% wage increase. 1,200 containers backlogged. Maersk and MSC divert 6 vessels to Gwadar. Daily losses PKR 850 million. No resolution before 7 days.\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Single news_article source. Credibility: 0.80 (news baseline)."
+          }
+        },
+        {
+          "name": "URL Auto-Fetch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"sources\": [\n    {\n      \"source_id\": \"web-1\",\n      \"source_type\": \"news_article\",\n      \"content\": \"https://dawn.com/news/supply-chain\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Pass a URL in content — backend fetches and extracts text automatically.\nAlso works with direct .pdf URLs (requires pypdf)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 — Multi-Source (key demo)",
+      "item": [
+        {
+          "name": "3 Sources — Aligned (no conflict)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"sources\": [\n    {\n      \"source_id\": \"realtime-port\",\n      \"source_type\": \"realtime_feed\",\n      \"timestamp_utc\": \"2026-05-14T06:00:00Z\",\n      \"content\": \"PORT AUTHORITY ALERT: Gate 4 and Gate 7 at Port Qasim closed due to worker strike. Container throughput at 0. 1,200 containers backlogged. Strike day 3. No resolution timeline.\"\n    },\n    {\n      \"source_id\": \"dashboard-erp\",\n      \"source_type\": \"dashboard\",\n      \"timestamp_utc\": \"2026-05-14T05:30:00Z\",\n      \"content\": \"ERP SNAPSHOT: Lahore DC SKU-A001 420 units (2.1 days). Islamabad DC SKU-A001 95 units (0.9 days) CRITICAL. Inbound KHI-LHR-001: DELAYED ETA unknown. Penalty: PKR 156,000/day.\"\n    },\n    {\n      \"source_id\": \"news-dawn\",\n      \"source_type\": \"news_article\",\n      \"timestamp_utc\": \"2026-05-14T04:00:00Z\",\n      \"content\": \"DAWN: Port Qasim strike day 3. Maersk and MSC divert to Gwadar. No deal expected before 7 days. Losses PKR 850M/day.\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "3 sources all agree — merger combines and ranks credibility:\n  realtime_feed: ~0.92  dashboard: 0.85  news: 0.80\nNo contradictions in parsed.contradictions[]"
+          }
+        },
+        {
+          "name": "4 Sources — WITH CONFLICTS (best demo)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"sources\": [\n    {\n      \"source_id\": \"realtime-port\",\n      \"source_type\": \"realtime_feed\",\n      \"timestamp_utc\": \"2026-05-14T06:00:00Z\",\n      \"content\": \"PORT AUTHORITY LIVE: Port Qasim strike day 3. Estimated resolution: 7-10 days. 1,400 containers affected. Gwadar alternate route operational.\"\n    },\n    {\n      \"source_id\": \"supplier-csv\",\n      \"source_type\": \"csv_json\",\n      \"timestamp_utc\": \"2026-05-14T02:00:00Z\",\n      \"content\": \"supplier_id,route,estimated_delay_days,containers_held\\nSUP-001,KHI-LHR-001,3,200\\nSUP-002,KHI-LHR-001,3,150\"\n    },\n    {\n      \"source_id\": \"dashboard-erp\",\n      \"source_type\": \"dashboard\",\n      \"timestamp_utc\": \"2026-05-14T05:30:00Z\",\n      \"content\": \"ERP: Islamabad DC SKU-A001 95 units (0.9 days). SKU-B042 40 units (0.5 days) CRITICAL. Penalty $320,000. KHI-LHR-001 ETA: 7 days.\"\n    },\n    {\n      \"source_id\": \"news-geo\",\n      \"source_type\": \"news_article\",\n      \"timestamp_utc\": \"2026-05-13T18:00:00Z\",\n      \"content\": \"GEO TV: Strike may resolve in 2-3 days. Government offers 25% wage increase. Partial operations at Gate 2 resumed.\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "CONFLICT DEMO:\n\nCONFLICT 1 — Strike duration (delay_days metric):\n  realtime_feed (06:00, credibility 0.92): 7-10 days\n  news_article  (18:00 prev day, credibility penalised ~0.60): 2-3 days\n  RESOLUTION: realtime_feed preferred (newer + higher credibility)\n\nCONFLICT 2 — Delay days:\n  csv_json (02:00, credibility 0.70): 3 days\n  dashboard (05:30, credibility 0.85): 7 days\n  RESOLUTION: dashboard preferred (more recent, higher credibility)\n\nCheck parsed.contradictions[] in response for full resolution log.\nTemporal signal: islamabad_dc SKU-B042 at 0.5 days = SPIKE"
+          }
+        },
+        {
+          "name": "5 Sources — All Types (full showcase)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/analyze",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"sources\": [\n    {\n      \"source_id\": \"realtime-iot\",\n      \"source_type\": \"realtime_feed\",\n      \"timestamp_utc\": \"2026-05-14T06:00:00Z\",\n      \"content\": \"IoT TRACKER: 3 trucks on KHI-LHR-001 stopped at Sukkur checkpoint. GPS halted since 05:12 UTC. Cargo: SKU-A001 x480 pallets, SKU-B042 x120 pallets. Road flooded, no ETA.\"\n    },\n    {\n      \"source_id\": \"pdf-audit\",\n      \"source_type\": \"pdf_report\",\n      \"timestamp_utc\": \"2026-05-13T12:00:00Z\",\n      \"content\": \"QUARTERLY RISK AUDIT: Route KHI-LHR-001 flagged HIGH RISK during monsoon. Historical disruption rate 68%. Recommended buffer: 5 days. Current buffer: 2.1 days. Gwadar capacity: 800 shipments/day. Annual penalty if route fails: $1.2M.\"\n    },\n    {\n      \"source_id\": \"dashboard-tms\",\n      \"source_type\": \"dashboard\",\n      \"timestamp_utc\": \"2026-05-14T05:45:00Z\",\n      \"content\": \"TMS: KHI-LHR-001: 847 pallets, DISRUPTED +7 days. Islamabad DC: 0.9 days supply CRITICAL. Lahore DC: 2.1 days. GWD-LHR-001: AVAILABLE, 800/day cap, +1.9 day ETA. Penalty: $320,000 at $45,760/day.\"\n    },\n    {\n      \"source_id\": \"news-tribune\",\n      \"source_type\": \"news_article\",\n      \"timestamp_utc\": \"2026-05-14T03:00:00Z\",\n      \"content\": \"EXPRESS TRIBUNE: Monsoon flooding closes N-5 between Sukkur-Larkana. NDMA: 4-5 day clearance. Alternate N-55 available but +300km. Truck operators demand PKR 15,000 fuel surcharge per trip.\"\n    },\n    {\n      \"source_id\": \"csv-inventory\",\n      \"source_type\": \"csv_json\",\n      \"timestamp_utc\": \"2026-05-14T05:00:00Z\",\n      \"content\": \"dc,sku,units,days_of_supply,status\\nlahore_dc,SKU-A001,420,2.1,BELOW_REORDER\\nlahore_dc,SKU-B042,180,1.8,BELOW_REORDER\\nlahore_dc,SKU-C118,90,0.9,CRITICAL\\nislamabad_dc,SKU-A001,95,0.9,CRITICAL\\nislamabad_dc,SKU-B042,40,0.5,CRITICAL\\nkarachi_port,SKU-A001,847,0,IN_TRANSIT_BLOCKED\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "All 5 source types in one request.\nConflicts: IoT says no ETA vs news says 4-5 days.\nTemporal signals: islamabad_dc SKU-B042 0.5 days SPIKE, penalty rising."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 — MCP Tools (Antigravity path)",
+      "item": [
+        {
+          "name": "List All Tools",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mcp/",
+            "body": { "mode": "raw", "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/list\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "parse_sources",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mcp/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"parse_sources\",\n    \"arguments\": {\n      \"session_id\": \"{{session_id}}\",\n      \"sources\": [\n        {\n          \"source_id\": \"realtime-1\",\n          \"source_type\": \"realtime_feed\",\n          \"timestamp_utc\": \"2026-05-14T06:00:00Z\",\n          \"content\": \"PORT AUTHORITY: Port Qasim strike day 3. 1,400 containers held. Resolution 7-10 days.\"\n        },\n        {\n          \"source_id\": \"csv-1\",\n          \"source_type\": \"csv_json\",\n          \"timestamp_utc\": \"2026-05-14T02:00:00Z\",\n          \"content\": \"route,delay_days\\nKHI-LHR-001,3\"\n        }\n      ]\n    }\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Stage 1. CONFLICT: realtime says 7-10 days, CSV says 3 days. Check contradictions in response."
+          }
+        },
+        {
+          "name": "extract_insights",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mcp/",
+            "body": { "mode": "raw", "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"extract_insights\",\n    \"arguments\": { \"session_id\": \"{{session_id}}\" }\n  }\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "plan_actions",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mcp/",
+            "body": { "mode": "raw", "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 4,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"plan_actions\",\n    \"arguments\": { \"session_id\": \"{{session_id}}\" }\n  }\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "execute_action (primary)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mcp/",
+            "body": { "mode": "raw", "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 5,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"execute_action\",\n    \"arguments\": {\n      \"session_id\": \"{{session_id}}\",\n      \"action_id\": \"ACT-001\"\n    }\n  }\n}", "options": { "raw": { "language": "json" } } },
+            "description": "Replace ACT-001 with actual primary_action_id from plan_actions response."
+          }
+        },
+        {
+          "name": "get_system_state",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mcp/",
+            "body": { "mode": "raw", "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 6,\n  \"method\": \"tools/call\",\n  \"params\": { \"name\": \"get_system_state\", \"arguments\": {} }\n}", "options": { "raw": { "language": "json" } } }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 — Mock APIs",
+      "item": [
+        {
+          "name": "Inventory — All DCs",
+          "request": { "method": "GET", "url": "{{base_url}}/mock/inventory/" }
+        },
+        {
+          "name": "Inventory — Islamabad DC",
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/mock/inventory/?dc=islamabad_dc", "query": [{ "key": "dc", "value": "islamabad_dc" }] } }
+        },
+        {
+          "name": "Inventory — Activate Safety Stock (Islamabad)",
+          "request": { "method": "POST", "url": { "raw": "{{base_url}}/mock/inventory/safety-stock/activate?dc=islamabad_dc", "query": [{ "key": "dc", "value": "islamabad_dc" }] } }
+        },
+        {
+          "name": "Inventory — Financial Exposure",
+          "request": { "method": "GET", "url": "{{base_url}}/mock/inventory/exposure" }
+        },
+        {
+          "name": "Routing — All Routes",
+          "request": { "method": "GET", "url": "{{base_url}}/mock/routing/routes" }
+        },
+        {
+          "name": "Routing — Reroute KHI→LHR via Gwadar",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mock/routing/reroute",
+            "body": { "mode": "raw", "raw": "{\n  \"from_route_id\": \"KHI-LHR-001\",\n  \"to_route_id\": \"GWD-LHR-001\",\n  \"shipment_count\": 500\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Pricing — Get Table",
+          "request": { "method": "GET", "url": "{{base_url}}/mock/pricing/" }
+        },
+        {
+          "name": "Pricing — Surge Lahore +25%",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mock/pricing/update",
+            "body": { "mode": "raw", "raw": "{\n  \"region\": \"lahore\",\n  \"multiplier\": 1.25\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Notifications — Send Critical Alert",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/mock/notifications/send",
+            "body": { "mode": "raw", "raw": "{\n  \"notification_type\": \"critical_alert\",\n  \"recipients\": [\"ops@chainsight.io\", \"logistics@partner.com\"],\n  \"subject\": \"CRITICAL: Islamabad DC at 0.9 days supply\",\n  \"body\": \"Islamabad DC will stockout within 22 hours. Activate safety stock immediately.\",\n  \"priority\": \"critical\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Notifications — Get Log",
+          "request": { "method": "GET", "url": "{{base_url}}/mock/notifications/log" }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ChainSight — Agentic Supply Chain Intelligence</title>
+<style>
+:root{
+  --bg:#0d1117;--sur:#161b22;--sur2:#21262d;--brd:#30363d;
+  --blue:#58a6ff;--green:#3fb950;--yellow:#d29922;--purple:#bc8cff;--red:#f85149;--orange:#e8882a;
+  --text:#e6edf3;--muted:#8b949e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:14px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* NAV */
+nav{height:52px;min-height:52px;background:rgba(13,17,23,.95);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 1.2rem;gap:1rem;z-index:100;flex-shrink:0;}
+.nav-brand{font-size:1.1rem;font-weight:800;color:var(--blue);letter-spacing:-.5px;white-space:nowrap;}
+.nav-brand span{color:var(--text);}
+.nav-spacer{flex:1;}
+.health-dot{width:8px;height:8px;border-radius:50%;background:var(--brd);display:inline-block;margin-right:5px;}
+.health-dot.online{background:var(--green);}
+.health-dot.offline{background:var(--red);}
+#health-label{font-size:.78rem;color:var(--muted);}
+.nav-link{color:var(--muted);text-decoration:none;font-size:.82rem;padding:.3rem .6rem;border-radius:6px;border:1px solid var(--brd);}
+.nav-link:hover{color:var(--text);}
+
+/* MAIN 3-PANEL */
+.main{display:grid;grid-template-columns:340px 1fr 460px;flex:1;overflow:hidden;gap:0;}
+
+/* PANELS */
+.panel{border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden;}
+.panel:last-child{border-right:none;}
+.panel-head{padding:.7rem 1rem;border-bottom:1px solid var(--brd);font-weight:700;font-size:.82rem;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;display:flex;align-items:center;gap:.5rem;}
+.panel-body{flex:1;overflow-y:auto;padding:1rem;}
+.panel-body::-webkit-scrollbar{width:4px;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--brd);border-radius:4px;}
+
+/* LEFT: INPUT */
+.field-label{font-size:.75rem;color:var(--muted);font-weight:600;margin-bottom:.3rem;display:block;}
+input[type=text],input[type=datetime-local],select,textarea{
+  width:100%;background:var(--sur2);border:1px solid var(--brd);border-radius:6px;
+  color:var(--text);padding:.45rem .7rem;font-size:.82rem;font-family:inherit;
+  outline:none;transition:border-color .15s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);}
+select option{background:var(--sur2);}
+textarea{resize:vertical;font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.75rem;}
+
+.sid-row{display:flex;gap:.4rem;align-items:flex-end;margin-bottom:.8rem;}
+.sid-row input{flex:1;}
+
+.source-card{background:var(--sur);border:1px solid var(--brd);border-radius:8px;padding:.8rem;margin-bottom:.6rem;position:relative;}
+.source-card-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;}
+.src-badge{background:rgba(88,166,255,.15);color:var(--blue);border-radius:4px;padding:.1rem .5rem;font-size:.7rem;font-weight:700;}
+.btn-remove{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:.1rem .3rem;border-radius:4px;}
+.btn-remove:hover{color:var(--red);}
+.src-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.4rem;}
+.src-full{grid-column:1/-1;}
+
+/* PRESETS */
+.presets-label{font-size:.72rem;color:var(--muted);font-weight:600;margin:.8rem 0 .4rem;display:block;letter-spacing:.3px;}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:.8rem;}
+.btn-preset{background:var(--sur2);border:1px solid var(--brd);color:var(--muted);border-radius:5px;padding:.35rem .5rem;font-size:.71rem;cursor:pointer;text-align:left;transition:all .1s;font-family:inherit;}
+.btn-preset:hover{border-color:var(--blue);color:var(--blue);}
+.btn-preset.conflict{border-color:rgba(232,136,42,.3);color:var(--orange);}
+.btn-preset.conflict:hover{border-color:var(--orange);}
+
+/* ACTION BUTTONS */
+.btn-add{width:100%;background:none;border:1px dashed var(--brd);color:var(--muted);border-radius:6px;padding:.5rem;cursor:pointer;font-size:.8rem;margin-bottom:.8rem;transition:all .15s;}
+.btn-add:hover{border-color:var(--blue);color:var(--blue);}
+.action-bar{display:flex;gap:.5rem;margin-top:.3rem;flex-shrink:0;padding:.7rem 1rem;border-top:1px solid var(--brd);}
+.btn{border:none;border-radius:6px;padding:.5rem 1rem;cursor:pointer;font-size:.82rem;font-weight:600;font-family:inherit;transition:all .1s;}
+.btn:hover{opacity:.85;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary{background:var(--blue);color:#0d1117;flex:1;}
+.btn-secondary{background:var(--sur2);color:var(--text);border:1px solid var(--brd);}
+.status-badge{font-size:.72rem;padding:.2rem .6rem;border-radius:10px;background:var(--sur2);color:var(--muted);white-space:nowrap;}
+.status-badge.streaming{background:rgba(88,166,255,.15);color:var(--blue);}
+.status-badge.done{background:rgba(63,185,80,.15);color:var(--green);}
+.status-badge.error{background:rgba(248,81,73,.15);color:var(--red);}
+
+/* CURRENT STATE BOX */
+.state-box{background:var(--sur);border:1px solid var(--brd);border-radius:6px;margin-top:.8rem;overflow:hidden;}
+.state-box-head{padding:.45rem .7rem;background:var(--sur2);font-size:.72rem;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.state-box-body{padding:.6rem;font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.68rem;color:var(--muted);max-height:140px;overflow-y:auto;display:none;}
+
+/* CENTER: SSE STREAM */
+.sse-empty{text-align:center;color:var(--muted);padding:3rem 1rem;font-size:.82rem;}
+.sse-event{display:flex;align-items:flex-start;gap:.7rem;padding:.55rem .7rem;border-radius:6px;background:var(--sur);border:1px solid var(--brd);margin-bottom:.4rem;cursor:pointer;transition:border-color .1s;}
+.sse-event:hover{border-color:var(--blue);}
+.sse-tag{flex-shrink:0;border-radius:4px;padding:.12rem .55rem;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+.t-start{background:rgba(88,166,255,.2);color:var(--blue);}
+.t-call{background:rgba(210,153,34,.2);color:var(--yellow);}
+.t-result-ok{background:rgba(63,185,80,.2);color:var(--green);}
+.t-result-err{background:rgba(248,81,73,.2);color:var(--red);}
+.t-done{background:rgba(188,140,255,.2);color:var(--purple);}
+.t-error{background:rgba(248,81,73,.2);color:var(--red);}
+.sse-main{flex:1;min-width:0;}
+.sse-title{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sse-sub{font-size:.72rem;color:var(--muted);font-family:"Cascadia Code","Fira Code",Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem;}
+.sse-ts{flex-shrink:0;font-size:.65rem;color:var(--muted);margin-top:2px;}
+.sse-detail{display:none;margin-top:.5rem;background:var(--bg);border-radius:4px;padding:.5rem;font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.68rem;color:var(--muted);white-space:pre-wrap;max-height:200px;overflow-y:auto;}
+.sse-event.open .sse-detail{display:block;}
+#sse-count{font-size:.72rem;color:var(--muted);margin-left:auto;}
+
+/* RIGHT: RESULTS */
+.tabs-row{display:flex;gap:.3rem;padding:.6rem .8rem;border-bottom:1px solid var(--brd);flex-wrap:wrap;flex-shrink:0;}
+.tab-btn{background:none;border:1px solid transparent;border-radius:5px;color:var(--muted);padding:.3rem .65rem;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .1s;}
+.tab-btn.active{background:rgba(88,166,255,.12);border-color:rgba(88,166,255,.35);color:var(--blue);}
+.tab-btn:hover:not(.active){border-color:var(--brd);color:var(--text);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* RESULT COMPONENTS */
+.stat-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
+.stat-chip{background:var(--sur2);border:1px solid var(--brd);border-radius:6px;padding:.35rem .7rem;font-size:.78rem;display:flex;align-items:center;gap:.35rem;}
+.stat-chip .val{font-weight:700;color:var(--text);}
+
+.entity-card{background:var(--sur);border:1px solid var(--brd);border-radius:7px;padding:.8rem;margin-bottom:.6rem;}
+.entity-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;}
+.sev-badge{border-radius:4px;padding:.1rem .45rem;font-size:.68rem;font-weight:700;text-transform:uppercase;}
+.sev-critical{background:rgba(248,81,73,.2);color:var(--red);}
+.sev-high{background:rgba(232,136,42,.2);color:var(--orange);}
+.sev-medium{background:rgba(210,153,34,.2);color:var(--yellow);}
+.sev-low{background:rgba(63,185,80,.2);color:var(--green);}
+.entity-loc{font-size:.75rem;color:var(--muted);}
+.entity-facts{margin-top:.5rem;padding-left:1rem;}
+.entity-facts li{font-size:.75rem;color:var(--muted);margin-bottom:.15rem;}
+
+.cred-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;}
+.cred-id{font-size:.73rem;color:var(--muted);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cred-bar-bg{flex:1;height:7px;background:var(--sur2);border-radius:4px;overflow:hidden;}
+.cred-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
+.cred-val{font-size:.7rem;color:var(--muted);width:28px;text-align:right;flex-shrink:0;}
+
+.conflict-box{background:rgba(210,153,34,.06);border:1px solid rgba(210,153,34,.25);border-radius:7px;padding:.7rem;margin-bottom:.5rem;}
+.conflict-metric{font-size:.78rem;font-weight:700;color:var(--yellow);margin-bottom:.3rem;}
+.conflict-claims{display:grid;grid-template-columns:1fr auto 1fr;gap:.4rem;align-items:center;font-size:.72rem;margin-bottom:.3rem;}
+.claim-box{background:var(--sur2);border-radius:4px;padding:.3rem .5rem;color:var(--muted);}
+.claim-src{font-weight:700;color:var(--text);}
+.vs{color:var(--brd);text-align:center;font-size:.65rem;}
+.conflict-res{font-size:.71rem;color:var(--muted);}
+.conflict-res .winner{color:var(--green);font-weight:600;}
+
+.signal-chip{display:inline-flex;align-items:center;gap:.3rem;background:var(--sur2);border:1px solid var(--brd);border-radius:4px;padding:.2rem .55rem;font-size:.72rem;margin:.15rem;}
+.trend-up{color:var(--green);}
+.trend-down{color:var(--red);}
+.trend-stable{color:var(--muted);}
+.trend-spike{color:var(--yellow);}
+
+.kv-list{font-size:.75rem;}
+.kv-list dt{color:var(--muted);float:left;margin-right:.5rem;}
+.kv-list dd{color:var(--text);margin-bottom:.3rem;overflow:hidden;}
+
+.section-h{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:1rem 0 .5rem;}
+
+/* Insight */
+.exposure-hero{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.2);border-radius:8px;padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;}
+.exposure-usd{font-size:1.6rem;font-weight:800;color:var(--red);}
+.urg-badge{border-radius:5px;padding:.2rem .7rem;font-size:.78rem;font-weight:700;}
+.urg-immediate{background:rgba(248,81,73,.2);color:var(--red);}
+.urg-24h{background:rgba(232,136,42,.2);color:var(--orange);}
+.urg-48h{background:rgba(210,153,34,.2);color:var(--yellow);}
+.urg-week{background:rgba(63,185,80,.2);color:var(--green);}
+
+.chain-card{background:var(--sur);border:1px solid var(--brd);border-radius:7px;padding:.8rem;margin-bottom:.6rem;}
+.chain-flow{display:flex;align-items:flex-start;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem;}
+.chain-node{background:var(--sur2);border-radius:5px;padding:.35rem .6rem;font-size:.75rem;flex:1;min-width:100px;}
+.chain-arrow{color:var(--brd);font-size:.8rem;margin-top:.4rem;flex-shrink:0;}
+.chain-meta{display:flex;gap:1rem;font-size:.72rem;color:var(--muted);}
+.chain-usd{color:var(--orange);font-weight:700;}
+.chain-prob{color:var(--blue);}
+
+.risk-list{list-style:none;}
+.risk-list li{padding:.3rem 0;border-bottom:1px solid rgba(48,54,61,.5);font-size:.78rem;color:var(--muted);display:flex;align-items:flex-start;gap:.4rem;}
+.risk-list li::before{content:"▸";color:var(--red);flex-shrink:0;}
+
+.sku-pill{display:inline-block;background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.25);border-radius:4px;padding:.15rem .55rem;font-size:.72rem;font-weight:600;margin:.15rem;}
+
+/* Plan */
+.action-card{background:var(--sur);border:1px solid var(--brd);border-radius:7px;padding:.8rem;margin-bottom:.6rem;}
+.action-card.primary-action{border-color:rgba(88,166,255,.4);}
+.action-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;}
+.rank-num{width:22px;height:22px;border-radius:50%;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;}
+.star{color:var(--yellow);font-size:.9rem;}
+.action-title{font-size:.85rem;font-weight:700;flex:1;}
+.action-type{font-size:.68rem;color:var(--muted);}
+.action-desc{font-size:.75rem;color:var(--muted);margin-bottom:.6rem;}
+.conf-bar-wrap{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;}
+.conf-label{font-size:.7rem;color:var(--muted);flex-shrink:0;}
+.conf-bar-bg{flex:1;height:6px;background:var(--sur2);border-radius:3px;overflow:hidden;}
+.conf-bar-fill{height:100%;border-radius:3px;}
+.conf-val{font-size:.7rem;font-weight:700;flex-shrink:0;width:28px;}
+.action-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.savings{font-size:.8rem;font-weight:700;color:var(--green);}
+.feas-badge{border-radius:4px;padding:.1rem .45rem;font-size:.68rem;font-weight:700;}
+.feas-feasible{background:rgba(63,185,80,.15);color:var(--green);}
+.feas-modified{background:rgba(210,153,34,.15);color:var(--yellow);}
+.feas-infeasible{background:rgba(248,81,73,.15);color:var(--red);}
+.dep-chip{background:var(--sur2);border:1px solid var(--brd);border-radius:3px;padding:.05rem .4rem;font-size:.65rem;color:var(--muted);}
+.params-toggle{background:none;border:1px solid var(--brd);color:var(--muted);border-radius:4px;padding:.15rem .5rem;font-size:.68rem;cursor:pointer;margin-top:.5rem;font-family:inherit;}
+.params-toggle:hover{border-color:var(--blue);color:var(--blue);}
+.params-json{display:none;margin-top:.4rem;background:var(--bg);border-radius:4px;padding:.5rem;font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.68rem;color:var(--muted);white-space:pre-wrap;}
+.violation-box{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.2);border-radius:6px;padding:.6rem;margin-bottom:.6rem;font-size:.75rem;color:var(--red);}
+
+/* Execution */
+.exec-empty{text-align:center;color:var(--muted);padding:2rem;font-size:.82rem;}
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem;}
+.ba-card{background:var(--sur);border:1px solid var(--brd);border-radius:6px;padding:.7rem;}
+.ba-title{font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;}
+.ba-kv{font-size:.72rem;color:var(--muted);margin-bottom:.2rem;}
+.ba-kv span{color:var(--text);}
+.ba-diff-better{color:var(--green);}
+.ba-diff-worse{color:var(--red);}
+
+.chain-step{background:var(--sur);border:1px solid var(--brd);border-radius:7px;margin-bottom:.5rem;overflow:hidden;}
+.chain-step-head{display:flex;align-items:center;gap:.6rem;padding:.65rem .8rem;cursor:pointer;}
+.chain-step-head:hover{background:var(--sur2);}
+.step-status{border-radius:4px;padding:.1rem .45rem;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.ss-success{background:rgba(63,185,80,.2);color:var(--green);}
+.ss-failed{background:rgba(248,81,73,.2);color:var(--red);}
+.ss-retried_ok{background:rgba(210,153,34,.2);color:var(--yellow);}
+.ss-rolled_back{background:rgba(232,136,42,.2);color:var(--orange);}
+.ss-skipped{background:rgba(139,148,158,.15);color:var(--muted);}
+.step-title{font-size:.8rem;font-weight:600;flex:1;}
+.step-ms{font-size:.68rem;color:var(--muted);}
+.step-chevron{color:var(--muted);transition:transform .15s;flex-shrink:0;}
+.chain-step.open .step-chevron{transform:rotate(90deg);}
+.chain-step-body{display:none;padding:.6rem .8rem;border-top:1px solid var(--brd);}
+.chain-step.open .chain-step-body{display:block;}
+.api-step{background:var(--sur2);border-radius:5px;padding:.5rem;margin-bottom:.4rem;font-size:.72rem;}
+.api-step-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;font-weight:600;}
+.api-ep{color:var(--blue);font-family:monospace;}
+
+/* Trace */
+.trace-list{display:flex;flex-direction:column;gap:.4rem;}
+.trace-item{display:flex;align-items:flex-start;gap:.7rem;background:var(--sur);border:1px solid var(--brd);border-radius:6px;padding:.6rem .8rem;}
+.trace-agent{background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.2);border-radius:4px;padding:.1rem .5rem;font-size:.7rem;font-weight:700;flex-shrink:0;}
+.trace-status{flex-shrink:0;font-size:.8rem;}
+.trace-info{flex:1;font-size:.73rem;color:var(--muted);}
+
+/* SKELETON */
+.skel{background:linear-gradient(90deg,var(--sur) 25%,var(--sur2) 50%,var(--sur) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:5px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin-bottom:.5rem;}
+.skel-line.wide{width:100%;}
+.skel-line.med{width:65%;}
+.skel-line.short{width:40%;}
+
+/* RAW JSON */
+.raw-json-toggle{background:none;border:1px solid var(--brd);color:var(--muted);border-radius:5px;padding:.3rem .7rem;font-size:.72rem;cursor:pointer;font-family:inherit;margin-top:.8rem;}
+.raw-json-toggle:hover{border-color:var(--blue);color:var(--blue);}
+.raw-json-block{display:none;margin-top:.5rem;background:var(--bg);border:1px solid var(--brd);border-radius:6px;padding:.8rem;font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.68rem;color:var(--muted);white-space:pre-wrap;max-height:400px;overflow-y:auto;}
+
+/* TOAST */
+#toast-container{position:fixed;bottom:1.2rem;right:1.2rem;z-index:9999;display:flex;flex-direction:column;gap:.4rem;}
+.toast{background:var(--sur2);border-radius:7px;padding:.65rem 1rem;font-size:.8rem;border-left:3px solid var(--brd);animation:slideIn .2s ease;max-width:300px;}
+.toast.success{border-left-color:var(--green);color:var(--green);}
+.toast.error{border-left-color:var(--red);color:var(--red);}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+
+/* MISC */
+hr.divider{border:none;border-top:1px solid var(--brd);margin:.8rem 0;}
+.empty-state{text-align:center;color:var(--muted);padding:3rem 1rem;font-size:.82rem;}
+.placeholder-line{height:13px;background:var(--sur2);border-radius:4px;margin-bottom:.5rem;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main{grid-template-columns:1fr;height:auto;overflow:visible;}
+  body{overflow:auto;}
+  .panel{min-height:300px;border-right:none;border-bottom:1px solid var(--brd);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">⛓ Chain<span>Sight</span></div>
+  <div class="nav-spacer"></div>
+  <div id="health-indicator" style="display:flex;align-items:center;gap:.3rem;margin-right:.8rem;">
+    <div class="health-dot" id="health-dot"></div>
+    <span id="health-label">Checking...</span>
+  </div>
+  <a class="nav-link" id="docs-link" href="http://localhost:8000/docs" target="_blank">Docs ↗</a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ── LEFT: INPUT FORM ── -->
+  <div class="panel">
+    <div class="panel-head">⌨ Input Sources</div>
+    <div class="panel-body" id="left-body">
+
+      <!-- Session ID -->
+      <label class="field-label">Session ID</label>
+      <div class="sid-row" style="margin-bottom:.8rem;">
+        <input type="text" id="session-id" placeholder="session-..."/>
+        <button class="btn btn-secondary" style="white-space:nowrap;padding:.45rem .7rem;" onclick="refreshSessionId()">↻</button>
+      </div>
+
+      <!-- Presets -->
+      <span class="presets-label">Quick Load Presets</span>
+      <div class="preset-grid">
+        <button class="btn-preset" onclick="loadPreset('single')">📡 Single IoT Alert</button>
+        <button class="btn-preset" onclick="loadPreset('aligned')">✅ 3 Aligned Sources</button>
+        <button class="btn-preset conflict" onclick="loadPreset('conflict')">⚠️ 4 Sources + Conflicts</button>
+        <button class="btn-preset" onclick="loadPreset('all5')">🔀 5 Source Types</button>
+        <button class="btn-preset" onclick="loadPreset('url')">🌐 URL Auto-Fetch</button>
+        <button class="btn-preset" onclick="loadPreset('clear')" style="color:var(--muted);">🗑 Clear All</button>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- Sources container -->
+      <div id="sources-container"></div>
+      <button class="btn-add" onclick="addSource()">+ Add Source</button>
+
+      <!-- Current State -->
+      <div class="state-box">
+        <div class="state-box-head" onclick="toggleStateBox()">
+          <span>📊 Current System State</span>
+          <span id="state-chevron">▶</span>
+        </div>
+        <pre class="state-box-body" id="state-box-body">—</pre>
+      </div>
+
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-secondary" onclick="resetState()">↺ Reset State</button>
+      <button class="btn btn-primary" id="analyze-btn" onclick="runAnalyze()">▶ Analyze</button>
+      <span class="status-badge" id="status-badge">Idle</span>
+    </div>
+  </div>
+
+  <!-- ── CENTER: SSE STREAM ── -->
+  <div class="panel">
+    <div class="panel-head">📡 Live Pipeline Trace <span id="sse-count"></span></div>
+    <div class="panel-body" id="sse-body">
+      <div class="sse-empty" id="sse-empty">
+        <div style="font-size:2rem;margin-bottom:.8rem;">📡</div>
+        Open the SSE stream and POST sources to see real-time events appear here.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: RESULTS ── -->
+  <div class="panel">
+    <div class="tabs-row">
+      <button class="tab-btn active" data-tab="parsed" onclick="switchTab('parsed')">Parsed</button>
+      <button class="tab-btn" data-tab="insight" onclick="switchTab('insight')">Insight</button>
+      <button class="tab-btn" data-tab="plan" onclick="switchTab('plan')">Plan</button>
+      <button class="tab-btn" data-tab="execution" onclick="switchTab('execution')">Execution</button>
+      <button class="tab-btn" data-tab="trace" onclick="switchTab('trace')">Trace</button>
+    </div>
+    <div class="panel-body" id="right-body">
+      <div id="tab-parsed" class="tab-pane active">
+        <div class="empty-state" id="parsed-empty">Results appear here after analysis.</div>
+      </div>
+      <div id="tab-insight" class="tab-pane">
+        <div class="empty-state">Run an analysis to see insights.</div>
+      </div>
+      <div id="tab-plan" class="tab-pane">
+        <div class="empty-state">Run an analysis to see the action plan.</div>
+      </div>
+      <div id="tab-execution" class="tab-pane">
+        <div class="empty-state">Run an analysis to see execution results.</div>
+      </div>
+      <div id="tab-trace" class="tab-pane">
+        <div class="empty-state">Run an analysis to see the agent trace.</div>
+      </div>
+
+      <div id="raw-json-area" style="display:none;">
+        <button class="raw-json-toggle" onclick="toggleRaw()">{ } Toggle Raw JSON</button>
+        <pre class="raw-json-block" id="raw-json-block"></pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────────
+// When opened at file:// or from localhost frontend dev server → hit localhost:8000
+// When deployed to Render → app is served by FastAPI itself, so same origin is correct
+const BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')
+  ? 'http://localhost:8000'
+  : window.location.origin;
+let sourceCount = 0;
+let activeES = null;
+let analyzeData = null;
+let rawOpen = false;
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  refreshSessionId();
+  addSource();
+  checkHealth();
+  loadCurrentState();
+  // Fix docs link — on Render, docs are served at /docs (FastAPI OpenAPI UI)
+  const docsLink = document.getElementById('docs-link');
+  if (docsLink) docsLink.href = BASE + '/docs';
+});
+
+function refreshSessionId() {
+  document.getElementById('session-id').value = 'session-' + Date.now();
+}
+
+// ── HEALTH ───────────────────────────────────────────────────────────────────
+async function checkHealth() {
+  const dot = document.getElementById('health-dot');
+  const lbl = document.getElementById('health-label');
+  try {
+    const r = await fetch(BASE + '/health', { signal: AbortSignal.timeout(4000) });
+    if (r.ok) {
+      dot.className = 'health-dot online';
+      lbl.textContent = 'Backend Online';
+    } else throw new Error();
+  } catch {
+    dot.className = 'health-dot offline';
+    lbl.textContent = 'Backend Offline';
+  }
+}
+
+// ── CURRENT STATE ────────────────────────────────────────────────────────────
+async function loadCurrentState() {
+  try {
+    const r = await fetch(BASE + '/api/state');
+    if (!r.ok) return;
+    const d = await r.json();
+    const el = document.getElementById('state-box-body');
+    el.textContent = JSON.stringify(d, null, 2);
+  } catch {}
+}
+
+function toggleStateBox() {
+  const body = document.getElementById('state-box-body');
+  const chev = document.getElementById('state-chevron');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chev.textContent = open ? '▶' : '▼';
+  if (!open) loadCurrentState();
+}
+
+async function resetState() {
+  try {
+    await fetch(BASE + '/api/state/reset', { method: 'POST' });
+    toast('State reset ✓', 'success');
+    loadCurrentState();
+  } catch (e) {
+    toast('Reset failed: ' + e.message, 'error');
+  }
+}
+
+// ── SOURCE BUILDER ───────────────────────────────────────────────────────────
+function addSource(data = {}) {
+  sourceCount++;
+  const id = sourceCount;
+  const container = document.getElementById('sources-container');
+  const wrap = document.createElement('div');
+  wrap.className = 'source-card';
+  wrap.id = 'src-card-' + id;
+
+  const typeOpts = ['realtime_feed','dashboard','news_article','pdf_report','csv_json']
+    .map(t => `<option value="${t}"${data.source_type === t ? ' selected' : ''}>${t}</option>`).join('');
+
+  const ts = data.timestamp_utc ? data.timestamp_utc.replace('Z','').slice(0,16) : '';
+
+  wrap.innerHTML = `
+    <div class="source-card-head">
+      <span class="src-badge">SRC ${id}</span>
+      <button class="btn-remove" onclick="removeSource(${id})" title="Remove">×</button>
+    </div>
+    <div class="src-grid">
+      <div>
+        <label class="field-label">source_id</label>
+        <input type="text" class="src-id" value="${data.source_id || 'src-'+id}" placeholder="src-${id}"/>
+      </div>
+      <div>
+        <label class="field-label">source_type</label>
+        <select class="src-type">${typeOpts}</select>
+      </div>
+      <div class="src-full">
+        <label class="field-label">timestamp_utc (optional)</label>
+        <input type="datetime-local" class="src-ts" value="${ts}"/>
+      </div>
+      <div class="src-full">
+        <label class="field-label">content (text or URL)</label>
+        <textarea class="src-content" rows="4" placeholder="Paste text, CSV, JSON, or a URL starting with http...">${data.content || ''}</textarea>
+      </div>
+    </div>`;
+
+  container.appendChild(wrap);
+}
+
+function removeSource(id) {
+  const cards = document.querySelectorAll('.source-card');
+  if (cards.length <= 1) { toast('Need at least 1 source', 'error'); return; }
+  document.getElementById('src-card-' + id)?.remove();
+}
+
+function getSources() {
+  const cards = document.querySelectorAll('.source-card');
+  const sources = [];
+  cards.forEach(card => {
+    const sid = card.querySelector('.src-id').value.trim();
+    const stype = card.querySelector('.src-type').value;
+    const tsRaw = card.querySelector('.src-ts').value;
+    const content = card.querySelector('.src-content').value.trim();
+    if (!content) return;
+    const src = { source_id: sid || ('src-'+(sources.length+1)), source_type: stype, content };
+    if (tsRaw) src.timestamp_utc = tsRaw + ':00Z';
+    sources.push(src);
+  });
+  return sources;
+}
+
+function clearSources() {
+  document.getElementById('sources-container').innerHTML = '';
+  sourceCount = 0;
+}
+
+// ── PRESETS ──────────────────────────────────────────────────────────────────
+const PRESETS = {
+  single: [{
+    source_id:'rt-1', source_type:'realtime_feed', timestamp_utc:'2026-05-14T06:00:00Z',
+    content:'IoT ALERT: 3 trucks on KHI-LHR-001 stopped at Sukkur checkpoint due to road blockage. Est delay 6-8 hrs. SKU-ELEC-001 shipment at risk. Contact: logistics@example.com'
+  }],
+  aligned: [
+    {source_id:'news-1',source_type:'news_article',timestamp_utc:'2026-05-14T04:00:00Z',
+     content:'Port of Karachi workers announced a 3-day strike starting May 15. All container terminals affected. Shipping companies report ~72hr cargo backlog.'},
+    {source_id:'dashboard-1',source_type:'dashboard',timestamp_utc:'2026-05-14T05:30:00Z',
+     content:'ERP SNAPSHOT: KHI warehouse utilization 94%. Outbound orders queued: 847. On-hand SKU-ELEC-001: 120 units. Safety stock threshold: 200 units. ALERT: Below threshold.'},
+    {source_id:'csv-1',source_type:'csv_json',timestamp_utc:'2026-05-14T05:00:00Z',
+     content:'dc,sku,on_hand,safety_stock,days_cover\nKHI,SKU-ELEC-001,120,200,2\nLHR,SKU-ELEC-001,380,200,8'}
+  ],
+  conflict: [
+    {source_id:'realtime-port',source_type:'realtime_feed',timestamp_utc:'2026-05-14T06:00:00Z',
+     content:'PORT AUTHORITY LIVE: Karachi port strike declared. Terminal 2 sealed. Est clearance 7-10 days. 1,200 containers backlogged. SKU-ELEC-001 batch #KHI-2026-447 held at gate 7.'},
+    {source_id:'dashboard-erp',source_type:'dashboard',timestamp_utc:'2026-05-14T05:00:00Z',
+     content:'ERP: KHI port disruption logged. Estimated delay: 5 days. Penalty accrual: $2,100/day. Affected routes: KHI-LHR-001. On-hand KHI: 120 units. Safety stock: 200 units.'},
+    {source_id:'csv-ops',source_type:'csv_json',timestamp_utc:'2026-05-13T12:00:00Z',
+     content:'event,delay_days,penalty_per_day\nport_strike,3,2100'},
+    {source_id:'news-1',source_type:'news_article',timestamp_utc:'2026-05-14T03:00:00Z',
+     content:'Karachi port strike enters day 2. Officials say resolution may take up to 2 weeks. Electronics supply chains most affected. Air freight prices up 40%.'}
+  ],
+  all5: [
+    {source_id:'rt-1',source_type:'realtime_feed',timestamp_utc:'2026-05-14T06:00:00Z',
+     content:'GPS TRACKER: Truck LHR-2026-T91 stopped 45km south of Lahore. Engine fault. SKU-FMCG-003 load. ETA delay: 4-6 hours.'},
+    {source_id:'dash-1',source_type:'dashboard',timestamp_utc:'2026-05-14T05:00:00Z',
+     content:'WMS: LHR DC utilization 78%. SKU-FMCG-003 on-hand: 340 units (threshold 250). Pending inbound: 2 trucks delayed. Outbound fill rate today: 91%.'},
+    {source_id:'news-1',source_type:'news_article',timestamp_utc:'2026-05-14T04:00:00Z',
+     content:'Heavy rainfall in Punjab causing road closures on N-5 highway. Logistics operators report 20-30% capacity reduction across Lahore-Islamabad corridor.'},
+    {source_id:'pdf-1',source_type:'pdf_report',timestamp_utc:'2026-05-13T00:00:00Z',
+     content:'QUARTERLY RISK REPORT: N-5 highway historically prone to weather disruptions in monsoon season (May-August). Recommend pre-positioning safety stock at ISB DC. Estimated seasonal risk: 15-20% on-time delivery reduction.'},
+    {source_id:'csv-1',source_type:'csv_json',timestamp_utc:'2026-05-14T05:30:00Z',
+     content:'dc,sku,on_hand,safety_stock,days_cover\nLHR,SKU-FMCG-003,340,250,4\nISB,SKU-FMCG-003,95,250,1'}
+  ],
+  url: [{source_id:'web-1',source_type:'news_article',
+         content:'https://www.dawn.com/news/supply-chain'}],
+  clear: []
+};
+
+function loadPreset(name) {
+  clearSources();
+  const items = PRESETS[name] || [];
+  if (!items.length) { addSource(); return; }
+  items.forEach(s => addSource(s));
+  toast(`Loaded: ${name} preset`, 'success');
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+// ── SSE STREAM ───────────────────────────────────────────────────────────────
+let sseEventCount = 0;
+
+function clearSSE() {
+  sseEventCount = 0;
+  document.getElementById('sse-body').innerHTML = `<div class="sse-empty" id="sse-empty"><div style="font-size:2rem;margin-bottom:.8rem;">📡</div>Connecting...</div>`;
+  document.getElementById('sse-count').textContent = '';
+}
+
+function appendSSEEvent(type, data) {
+  const empty = document.getElementById('sse-empty');
+  if (empty) empty.remove();
+  sseEventCount++;
+  document.getElementById('sse-count').textContent = `(${sseEventCount})`;
+
+  const tagMap = {
+    start:'t-start',call:'t-call',result_ok:'t-result-ok',result_err:'t-result-err',done:'t-done',error:'t-error'
+  };
+  const labelMap = {start:'START',call:'CALL',result_ok:'RESULT ✓',result_err:'RESULT ✗',done:'DONE',error:'ERROR'};
+
+  const el = document.createElement('div');
+  el.className = 'sse-event';
+  el.addEventListener('click', () => el.classList.toggle('open'));
+
+  const now = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const title = data.tool || data.message || type;
+  const sub = typeof data === 'object' ? JSON.stringify(data).slice(0,80) : '';
+  const detail = JSON.stringify(data, null, 2);
+
+  el.innerHTML = `
+    <span class="sse-tag ${tagMap[type]||'t-done'}">${labelMap[type]||type.toUpperCase()}</span>
+    <div class="sse-main">
+      <div class="sse-title">${escHtml(String(title))}</div>
+      <div class="sse-sub">${escHtml(sub)}</div>
+      <pre class="sse-detail">${escHtml(detail)}</pre>
+    </div>
+    <span class="sse-ts">${now}</span>`;
+
+  const body = document.getElementById('sse-body');
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+
+function openSSE(sessionId) {
+  if (activeES) { activeES.close(); activeES = null; }
+  clearSSE();
+
+  const es = new EventSource(`${BASE}/api/stream/${encodeURIComponent(sessionId)}`);
+  activeES = es;
+
+  es.addEventListener('orchestrator_start', e => {
+    try { appendSSEEvent('start', JSON.parse(e.data)); } catch { appendSSEEvent('start', {raw:e.data}); }
+  });
+  es.addEventListener('tool_call', e => {
+    try { appendSSEEvent('call', JSON.parse(e.data)); } catch { appendSSEEvent('call', {raw:e.data}); }
+  });
+  es.addEventListener('tool_result', e => {
+    try {
+      const d = JSON.parse(e.data);
+      appendSSEEvent(d.success === false ? 'result_err' : 'result_ok', d);
+    } catch { appendSSEEvent('result_ok', {raw:e.data}); }
+  });
+  es.addEventListener('orchestrator_done', e => {
+    try { appendSSEEvent('done', JSON.parse(e.data)); } catch { appendSSEEvent('done', {raw:e.data}); }
+  });
+  es.addEventListener('pipeline_done', e => {
+    try { appendSSEEvent('done', JSON.parse(e.data)); } catch { appendSSEEvent('done', {raw:e.data}); }
+    es.close(); activeES = null;
+  });
+  es.addEventListener('pipeline_error', e => {
+    try { appendSSEEvent('error', JSON.parse(e.data)); } catch { appendSSEEvent('error', {raw:e.data}); }
+    es.close(); activeES = null;
+  });
+  es.onerror = () => {}; // swallow reconnect noise
+
+  return es;
+}
+
+// ── ANALYZE ──────────────────────────────────────────────────────────────────
+async function runAnalyze() {
+  const sessionId = document.getElementById('session-id').value.trim() || ('session-' + Date.now());
+  document.getElementById('session-id').value = sessionId;
+
+  const sources = getSources();
+  if (!sources.length) { toast('Add at least one source', 'error'); return; }
+
+  setStatus('streaming');
+  setResultsLoading();
+
+  // 1. Open SSE FIRST
+  openSSE(sessionId);
+
+  // 2. POST
+  try {
+    const res = await fetch(BASE + '/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, sources })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
+    }
+
+    const data = await res.json();
+    analyzeData = data;
+    renderResults(data);
+    setStatus('done');
+    toast('Analysis complete ✓', 'success');
+    loadCurrentState();
+  } catch (e) {
+    setStatus('error');
+    appendSSEEvent('error', { message: e.message });
+    clearResultsError(e.message);
+    toast('Error: ' + e.message, 'error');
+    if (activeES) { activeES.close(); activeES = null; }
+  }
+}
+
+// ── STATUS ───────────────────────────────────────────────────────────────────
+function setStatus(s) {
+  const badge = document.getElementById('status-badge');
+  const btn = document.getElementById('analyze-btn');
+  badge.className = 'status-badge ' + s;
+  if (s === 'streaming') { badge.textContent = 'Streaming...'; btn.disabled = true; }
+  else if (s === 'done') { badge.textContent = 'Done ✓'; btn.disabled = false; }
+  else if (s === 'error') { badge.textContent = 'Error ✗'; btn.disabled = false; }
+  else { badge.textContent = 'Idle'; btn.disabled = false; }
+}
+
+// ── SKELETONS ────────────────────────────────────────────────────────────────
+function setResultsLoading() {
+  const skel = `<div class="skel skel-line wide"></div><div class="skel skel-line med"></div><div class="skel skel-line short"></div><div style="height:.5rem"></div><div class="skel skel-line wide"></div><div class="skel skel-line med"></div>`;
+  ['parsed','insight','plan','execution','trace'].forEach(t => {
+    document.getElementById('tab-'+t).innerHTML = skel;
+  });
+  document.getElementById('raw-json-area').style.display = 'none';
+}
+
+function clearResultsError(msg) {
+  ['parsed','insight','plan','execution','trace'].forEach(t => {
+    document.getElementById('tab-'+t).innerHTML = `<div class="empty-state" style="color:var(--red)">✗ ${escHtml(msg)}</div>`;
+  });
+}
+
+// ── RENDER RESULTS ────────────────────────────────────────────────────────────
+function renderResults(data) {
+  renderParsed(data.parsed);
+  renderInsight(data.insight);
+  renderPlan(data.plan);
+  renderExecution(data.execution);
+  renderTrace(data.agent_trace);
+
+  document.getElementById('raw-json-area').style.display = 'block';
+  document.getElementById('raw-json-block').textContent = JSON.stringify(data, null, 2);
+}
+
+// ── TAB 1: PARSED ────────────────────────────────────────────────────────────
+function renderParsed(p) {
+  if (!p) { document.getElementById('tab-parsed').innerHTML = '<div class="empty-state">No parse data</div>'; return; }
+
+  let html = '';
+
+  // Stats
+  html += `<div class="stat-row">
+    <div class="stat-chip">📦 <span class="val">${p.sources_parsed||0}</span> Sources</div>
+    <div class="stat-chip">🔍 <span class="val">${(p.entities||[]).length}</span> Entities</div>
+    <div class="stat-chip">⚠️ <span class="val">${(p.contradictions||[]).length}</span> Conflicts</div>
+    <div class="stat-chip">🔇 <span class="val">${p.noise_filtered||0}</span> Filtered</div>
+  </div>`;
+
+  // Entities
+  if (p.entities && p.entities.length) {
+    html += '<div class="section-h">Disruption Entities</div>';
+    p.entities.forEach(e => {
+      const sevClass = 'sev-'+(e.severity||'low');
+      html += `<div class="entity-card">
+        <div class="entity-head">
+          <span class="sev-badge ${sevClass}">${e.severity||'low'}</span>
+          <strong style="font-size:.82rem;">${escHtml(e.disruption_type||'')}</strong>
+        </div>
+        <div class="entity-loc">📍 ${escHtml(e.location||'')} → ${escHtml(e.affected_region||'')} · ⏱ ${e.duration_days||0} days</div>
+        ${(e.raw_facts||[]).length ? `<ul class="entity-facts">${e.raw_facts.map(f=>`<li>${escHtml(f)}</li>`).join('')}</ul>` : ''}
+      </div>`;
+    });
+  }
+
+  // Credibility
+  if (p.credibility_scores && Object.keys(p.credibility_scores).length) {
+    html += '<div class="section-h">Source Credibility</div>';
+    Object.entries(p.credibility_scores).forEach(([sid, score]) => {
+      const pct = Math.round(score * 100);
+      const color = score >= 0.8 ? 'var(--green)' : score >= 0.6 ? 'var(--yellow)' : 'var(--red)';
+      html += `<div class="cred-row">
+        <div class="cred-id" title="${sid}">${escHtml(sid)}</div>
+        <div class="cred-bar-bg"><div class="cred-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+        <div class="cred-val">${score.toFixed(2)}</div>
+      </div>`;
+    });
+  }
+
+  // Contradictions
+  if (p.contradictions && p.contradictions.length) {
+    html += '<div class="section-h">⚠ Conflict Resolution</div>';
+    p.contradictions.forEach(c => {
+      html += `<div class="conflict-box">
+        <div class="conflict-metric">${escHtml(c.metric||'')}</div>
+        <div class="conflict-claims">
+          <div class="claim-box"><div class="claim-src">${escHtml(c.source_a_id||'')}</div>${escHtml(c.source_a_claim||'')}</div>
+          <div class="vs">VS</div>
+          <div class="claim-box"><div class="claim-src">${escHtml(c.source_b_id||'')}</div>${escHtml(c.source_b_claim||'')}</div>
+        </div>
+        <div class="conflict-res">Resolution: <span class="winner">${escHtml(c.resolution||'')}</span> — ${escHtml(c.resolution_reason||'')}</div>
+      </div>`;
+    });
+  }
+
+  // Temporal signals
+  if (p.temporal_signals && p.temporal_signals.length) {
+    html += '<div class="section-h">Temporal Signals</div><div>';
+    const trendIcon = {rising:'↑',falling:'↓',stable:'→',spike:'⚡'};
+    const trendClass = {rising:'trend-up',falling:'trend-down',stable:'trend-stable',spike:'trend-spike'};
+    p.temporal_signals.forEach(s => {
+      const icon = trendIcon[s.trend]||'·';
+      const cls = trendClass[s.trend]||'trend-stable';
+      html += `<span class="signal-chip"><span class="${cls}">${icon}</span> <strong>${escHtml(s.metric||'')}</strong> ${(s.change_pct>=0?'+':'')}${s.change_pct}%</span>`;
+    });
+    html += '</div>';
+  }
+
+  // Key metrics
+  if (p.key_metrics && Object.keys(p.key_metrics).length) {
+    html += '<div class="section-h">Key Metrics</div><dl class="kv-list">';
+    Object.entries(p.key_metrics).forEach(([k,v]) => {
+      html += `<dt>${escHtml(String(k))}:</dt><dd>${escHtml(String(v))}</dd>`;
+    });
+    html += '</dl>';
+  }
+
+  if (p.time_horizon) html += `<div style="margin-top:.8rem;font-size:.75rem;color:var(--muted);">⏳ Time horizon: <strong style="color:var(--text)">${escHtml(p.time_horizon)}</strong></div>`;
+
+  document.getElementById('tab-parsed').innerHTML = html;
+}
+
+// ── TAB 2: INSIGHT ───────────────────────────────────────────────────────────
+function renderInsight(ins) {
+  if (!ins) { document.getElementById('tab-insight').innerHTML = '<div class="empty-state">No insight data</div>'; return; }
+
+  const urgClass = { immediate:'urg-immediate','24h':'urg-24h','48h':'urg-48h','week':'urg-week' };
+
+  let html = `<div class="exposure-hero">
+    <div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.3rem;">Total Financial Exposure</div>
+      <div class="exposure-usd">$${Number(ins.total_exposure_usd||0).toLocaleString()}</div>
+    </div>
+    <div style="margin-left:auto;">
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.3rem;">Urgency</div>
+      <span class="urg-badge ${urgClass[ins.urgency]||'urg-week'}">${ins.urgency||'unknown'}</span>
+    </div>
+  </div>`;
+
+  if (ins.title) html += `<div style="font-size:.9rem;font-weight:700;margin-bottom:.8rem;">${escHtml(ins.title)}</div>`;
+
+  // Affected SKUs
+  if (ins.affected_skus && ins.affected_skus.length) {
+    html += '<div class="section-h">Affected SKUs</div><div>';
+    ins.affected_skus.forEach(s => { html += `<span class="sku-pill">${escHtml(s)}</span>`; });
+    html += '</div>';
+  }
+
+  // Causal chains
+  if (ins.causal_chains && ins.causal_chains.length) {
+    html += '<div class="section-h">Causal Chains</div>';
+    ins.causal_chains.forEach(c => {
+      html += `<div class="chain-card">
+        <div class="chain-flow">
+          <div class="chain-node"><strong>Cause</strong><br/>${escHtml(c.cause||'')}</div>
+          <span class="chain-arrow">──►</span>
+          <div class="chain-node"><strong>Immediate</strong><br/>${escHtml(c.immediate_effect||'')}</div>
+          <span class="chain-arrow">──►</span>
+          <div class="chain-node"><strong>Downstream</strong><br/>${escHtml(c.downstream_effect||'')}</div>
+        </div>
+        <div class="chain-meta">
+          <span class="chain-usd">💥 $${Number(c.financial_impact_usd||0).toLocaleString()}</span>
+          <span class="chain-prob">🎯 ${c.probability_pct||0}% probability</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Key risks
+  if (ins.key_risks && ins.key_risks.length) {
+    html += '<div class="section-h">Key Risks</div><ul class="risk-list">';
+    ins.key_risks.forEach(r => { html += `<li>${escHtml(r)}</li>`; });
+    html += '</ul>';
+  }
+
+  // Contradiction resolutions
+  if (ins.contradiction_resolutions && ins.contradiction_resolutions.length) {
+    html += '<div class="section-h">Contradiction Resolutions</div><ul class="risk-list">';
+    ins.contradiction_resolutions.forEach(r => { html += `<li style="color:var(--yellow)">${escHtml(r)}</li>`; });
+    html += '</ul>';
+  }
+
+  document.getElementById('tab-insight').innerHTML = html;
+}
+
+// ── TAB 3: PLAN ──────────────────────────────────────────────────────────────
+function renderPlan(plan) {
+  if (!plan) { document.getElementById('tab-plan').innerHTML = '<div class="empty-state">No plan data</div>'; return; }
+
+  let html = '';
+
+  if (plan.rationale) {
+    html += `<div style="background:var(--sur);border:1px solid var(--brd);border-radius:6px;padding:.7rem;margin-bottom:.8rem;font-size:.78rem;color:var(--muted);">📋 ${escHtml(plan.rationale)}</div>`;
+  }
+
+  if (plan.total_budget_usd) {
+    html += `<div style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem;">Total Budget: <strong style="color:var(--text)">$${Number(plan.total_budget_usd).toLocaleString()}</strong></div>`;
+  }
+
+  if (plan.constraint_violations && plan.constraint_violations.length) {
+    html += `<div class="violation-box">⚠ Constraint Violations:<br>${plan.constraint_violations.map(v=>`• ${escHtml(v)}`).join('<br>')}</div>`;
+  }
+
+  (plan.ranked_actions||[]).forEach((action, idx) => {
+    const isPrimary = action.action_id === plan.primary_action_id;
+    const confPct = action.confidence_pct || 0;
+    const confColor = confPct >= 75 ? 'var(--green)' : confPct >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const feasClass = 'feas-' + (action.feasibility_status||'feasible');
+    const uid = 'params-' + idx;
+
+    html += `<div class="action-card${isPrimary ? ' primary-action' : ''}">
+      <div class="action-head">
+        <div class="rank-num">${idx+1}</div>
+        ${isPrimary ? '<span class="star" title="Primary Action">★</span>' : ''}
+        <div>
+          <div class="action-title">${escHtml(action.title||action.action_id||'Action')}</div>
+          <div class="action-type">${escHtml(action.action_type||'')}</div>
+        </div>
+      </div>
+      ${action.description ? `<div class="action-desc">${escHtml(action.description)}</div>` : ''}
+      <div class="conf-bar-wrap">
+        <span class="conf-label">Confidence</span>
+        <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${confPct}%;background:${confColor};"></div></div>
+        <span class="conf-val" style="color:${confColor};">${confPct}%</span>
+      </div>
+      <div class="action-meta">
+        <span class="savings">💰 $${Number(action.estimated_savings_usd||0).toLocaleString()} saved</span>
+        <span class="feas-badge ${feasClass}">${action.feasibility_status||'feasible'}</span>
+        ${(action.depends_on||[]).length ? `<span style="font-size:.68rem;color:var(--muted);">deps: ${action.depends_on.map(d=>`<span class="dep-chip">${escHtml(d)}</span>`).join(' ')}</span>` : ''}
+      </div>
+      ${action.feasibility_note ? `<div style="font-size:.72rem;color:var(--yellow);margin-top:.3rem;">ℹ ${escHtml(action.feasibility_note)}</div>` : ''}
+      ${action.parameters && Object.keys(action.parameters).length ? `
+        <button class="params-toggle" onclick="toggleParams('${uid}')">{ } Parameters</button>
+        <pre class="params-json" id="${uid}">${escHtml(JSON.stringify(action.parameters,null,2))}</pre>` : ''}
+    </div>`;
+  });
+
+  document.getElementById('tab-plan').innerHTML = html;
+}
+
+function toggleParams(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+// ── TAB 4: EXECUTION ─────────────────────────────────────────────────────────
+function renderExecution(exec) {
+  if (!exec) {
+    document.getElementById('tab-execution').innerHTML = '<div class="exec-empty">⚠ Execution data not available for this session.</div>';
+    return;
+  }
+
+  let html = `<div class="stat-row">
+    <div class="stat-chip">✅ <span class="val">${exec.total_actions_succeeded}</span> Succeeded</div>
+    <div class="stat-chip">❌ <span class="val">${exec.total_actions_failed}</span> Failed</div>
+    <div class="stat-chip">💰 <span class="val">$${Number(exec.penalty_reduction_usd||0).toLocaleString()}</span> Saved</div>
+    <div class="stat-chip">⏱ <span class="val">${exec.total_latency_ms||0}ms</span></div>
+  </div>`;
+
+  if (exec.outcome_summary) {
+    html += `<div style="background:var(--sur);border:1px solid var(--brd);border-radius:6px;padding:.7rem;margin-bottom:.8rem;font-size:.78rem;color:var(--muted);">📋 ${escHtml(exec.outcome_summary)}</div>`;
+  }
+
+  // Before/After
+  if (exec.before_state && exec.after_state) {
+    html += '<div class="section-h">Before → After State</div><div class="before-after">';
+    html += renderStateCard('Before', exec.before_state);
+    html += renderStateCard('After', exec.after_state, exec.before_state);
+    html += '</div>';
+  }
+
+  // Chain steps
+  if (exec.chain_steps && exec.chain_steps.length) {
+    html += '<div class="section-h">Execution Steps</div>';
+    exec.chain_steps.forEach((step, idx) => {
+      const ssClass = 'ss-' + (step.status||'success');
+      const uid = 'step-' + idx;
+      html += `<div class="chain-step" id="${uid}">
+        <div class="chain-step-head" onclick="toggleStep('${uid}')">
+          <span class="step-status ${ssClass}">${step.status||'success'}</span>
+          <span class="step-title">${escHtml(step.action_title||step.action_id||'')}</span>
+          <span class="step-ms">${step.latency_ms||0}ms</span>
+          <span class="step-chevron">▶</span>
+        </div>
+        <div class="chain-step-body">
+          ${step.error ? `<div style="color:var(--red);font-size:.75rem;margin-bottom:.5rem;">✗ ${escHtml(step.error)}</div>` : ''}
+          ${step.recovery_note ? `<div style="color:var(--yellow);font-size:.75rem;margin-bottom:.5rem;">ℹ ${escHtml(step.recovery_note)}</div>` : ''}
+          ${(step.api_steps||[]).map(a => `
+            <div class="api-step">
+              <div class="api-step-head">
+                ${a.success ? '✅' : '❌'} Step ${a.step}: <span class="api-ep">${escHtml(a.action||'')} ${escHtml(a.endpoint||'')}</span>
+              </div>
+              <div style="font-size:.68rem;color:var(--muted);">Request: ${escHtml(JSON.stringify(a.request_payload||{}).slice(0,100))}</div>
+              <div style="font-size:.68rem;color:var(--muted);">Response: ${escHtml(JSON.stringify(a.response_payload||{}).slice(0,100))}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    });
+  }
+
+  document.getElementById('tab-execution').innerHTML = html;
+}
+
+function renderStateCard(label, state, prevState) {
+  let html = `<div class="ba-card"><div class="ba-title">${label}</div>`;
+  const keys = ['penalty_exposure_usd','notifications_count'];
+  keys.forEach(k => {
+    const val = state[k];
+    if (val === undefined) return;
+    let diffClass = '';
+    if (prevState) {
+      const prev = prevState[k];
+      if (k === 'penalty_exposure_usd') diffClass = val < prev ? ' ba-diff-better' : val > prev ? ' ba-diff-worse' : '';
+      else diffClass = val > prev ? ' ba-diff-better' : '';
+    }
+    html += `<div class="ba-kv">${k}: <span class="${diffClass}">${typeof val === 'number' ? (k.includes('usd') ? '$'+val.toLocaleString() : val) : val}</span></div>`;
+  });
+  // Inventory summary
+  if (state.inventory) {
+    const dcs = Object.keys(state.inventory);
+    html += `<div class="ba-kv" style="margin-top:.3rem;">DCs: <span>${dcs.length}</span></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function toggleStep(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+// ── TAB 5: TRACE ─────────────────────────────────────────────────────────────
+function renderTrace(trace) {
+  if (!trace || !trace.length) {
+    document.getElementById('tab-trace').innerHTML = '<div class="empty-state">No trace data</div>';
+    return;
+  }
+
+  let html = '<div class="trace-list">';
+  trace.forEach(step => {
+    const icon = step.status === 'error' ? '❌' : '✅';
+    const keys = step.output ? Object.keys(step.output).length : 0;
+    html += `<div class="trace-item">
+      <span class="trace-agent">${escHtml(step.agent||'')}</span>
+      <span class="trace-status">${icon}</span>
+      <div class="trace-info">
+        ${step.status === 'error'
+          ? `<span style="color:var(--red)">${escHtml(step.error||'error')}</span>`
+          : `${step.output ? keys + ' output fields' : 'completed'}`}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('tab-trace').innerHTML = html;
+}
+
+// ── RAW JSON TOGGLE ──────────────────────────────────────────────────────────
+function toggleRaw() {
+  rawOpen = !rawOpen;
+  document.getElementById('raw-json-block').style.display = rawOpen ? 'block' : 'none';
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = (type === 'success' ? '✓ ' : '✗ ') + msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ── UTILS ────────────────────────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

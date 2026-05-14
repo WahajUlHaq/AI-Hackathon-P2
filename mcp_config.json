@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "chainsight": {
+      "serverUrl": "http://localhost:8000/mcp/",
+      "comment": "ChainSight Supply Chain Intelligence MCP Server. Start backend first: cd backend && uvicorn main:app --reload"
+    }
+  }
+}
+ 
