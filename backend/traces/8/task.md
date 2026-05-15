@@ -1,0 +1,14 @@
+- [x] Implement SSE queue manager in `main.py` — per-session asyncio.Queue with TTL cleanup
+- [x] Implement `POST /api/analyze` endpoint with rate limiting (3 req/hour/IP) and SSE session ID generation
+- [x] Implement `GET /api/stream/{session_id}` SSE endpoint with EventSource-compatible event format
+- [x] Implement `_is_supply_chain_content()` input validation guard with 50+ keyword set
+- [x] Wire `_emit()` helper to push events: orchestrator_start, tool_call, tool_result, orchestrator_done, pipeline_done, pipeline_error
+- [x] Return `X-RateLimit-Remaining` and `X-RateLimit-Reset` headers on every /api/analyze response
+- [x] Design 3-panel SPA layout in `app.html` (left: input, center: live trace, right: results)
+- [x] Implement glassmorphism streaming panel with backdrop-blur SSE event cards
+- [x] Implement 4-agent parallel grid with burst animation and per-agent state (idle/active/done/error)
+- [x] Implement color-coded SSE event cards with left accent bar per event type
+- [x] Implement results panel with 3 tabs: Insights, Actions, Execution
+- [x] Add 422 irrelevant-input error handler in JS `runAnalyze()`
+- [x] Verify full end-to-end: analyze → SSE stream → results tabs populated
+- [x] Verify rate limit triggers correctly on 4th request within 1 hour

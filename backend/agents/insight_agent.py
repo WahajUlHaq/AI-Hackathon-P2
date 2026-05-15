@@ -53,13 +53,16 @@ async def run(parsed: ParsedContent) -> Insight:
             if check.verdict != "reject":
                 break
             contents = check.correction_hint + "\n\n" + base_contents
-        raw_text = await ds_generate(
-            system_prompt=_SYSTEM_PROMPT,
-            user_content=contents,
-            json_mode=True,
-            temperature=0.2,
-        )
-        raw = json.loads(raw_text)
+        try:
+            raw_text = await ds_generate(
+                system_prompt=_SYSTEM_PROMPT,
+                user_content=contents,
+                json_mode=True,
+                temperature=0.2,
+            )
+            raw = json.loads(raw_text)
+        except Exception:
+            continue  # retry on parse or API error
         chains = [CausalChain(**c) for c in raw.get("causal_chains", [])]
         result = Insight(
             title=raw["title"],

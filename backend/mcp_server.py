@@ -367,17 +367,25 @@ async def _handle_tool_call(name: str, args: dict, app_state) -> dict:
         if not raw_sources and existing_sess.get("pending_sources"):
             raw_sources = existing_sess["pending_sources"]
 
-        if raw_sources:
+        # Return cached result if this session was already parsed (avoids re-parse on fallback)
+        if "parsed" in existing_sess and not args.get("sources"):
+            parsed = existing_sess["parsed"]
+        elif raw_sources:
+            import asyncio as _asyncio
             from content_fetcher import resolve_content
-            sources = []
-            for s in raw_sources:
-                resolved = await resolve_content(s["content"])
-                sources.append(ContentSource(
+            # Resolve all source URLs in parallel
+            resolved_contents = await _asyncio.gather(
+                *[resolve_content(s["content"]) for s in raw_sources]
+            )
+            sources = [
+                ContentSource(
                     source_id=s["source_id"],
                     source_type=SourceType(s["source_type"]),
                     content=resolved,
                     timestamp_utc=s.get("timestamp_utc"),
-                ))
+                )
+                for s, resolved in zip(raw_sources, resolved_contents)
+            ]
             parsed = await parser_agent.run(sources)
         else:
             # Fall back to inline content arg or pending_content from session

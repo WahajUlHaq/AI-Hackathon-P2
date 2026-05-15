@@ -1,0 +1,11 @@
+- [x] Design `state.py` shared in-memory state module with `get_snapshot()` and `reset()`
+- [x] Implement `mock_apis/inventory.py` — 3 DCs (Karachi/Lahore/Islamabad), SKU lookup, safety stock activation, exposure calculation
+- [x] Implement `mock_apis/routing.py` — 5 active routes, reroute optimizer, cost + ETA delta calculation
+- [x] Implement `mock_apis/pricing.py` — base + surge pricing, ±25% surge cap, per-SKU override
+- [x] Implement `mock_apis/notifications.py` — email/WhatsApp audit log, batch send, deduplication
+- [x] Mount all 4 mock API routers in `main.py` at `/mock/` prefix
+- [x] Seed realistic initial state: $320,000 penalty exposure, 847 at-risk pallets, 5 routes
+- [x] Implement `reset_state` endpoint to restore baseline for demo restarts
+- [x] Verify inventory safety stock activation reduces penalty exposure correctly
+- [x] Verify reroute calculates correct cost delta and ETA delta for Gwadar alternate
+- [x] Verify notifications audit log captures all sent messages with timestamps

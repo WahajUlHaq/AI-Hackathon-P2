@@ -116,13 +116,16 @@ async def run(content_or_sources) -> ParsedContent:
             if check.verdict != "reject":
                 break
             contents = check.correction_hint + "\n\n" + base_contents
-        raw_text = await ds_generate(
-            system_prompt=_SYSTEM_PROMPT,
-            user_content=contents,
-            json_mode=True,
-            temperature=0.1,
-        )
-        raw = json.loads(raw_text)
+        try:
+            raw_text = await ds_generate(
+                system_prompt=_SYSTEM_PROMPT,
+                user_content=contents,
+                json_mode=True,
+                temperature=0.1,
+            )
+            raw = json.loads(raw_text)
+        except Exception:
+            continue  # retry on parse or API error
         entities = [DisruptionEntity(**e) for e in raw.get("entities", [])]
         temporal = [TemporalSignal(**s) for s in raw.get("temporal_signals", [])]
         contradictions = [ContradictionRecord(**c) for c in raw.get("contradictions", [])]

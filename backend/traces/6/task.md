@@ -1,0 +1,13 @@
+- [x] Implement `deepseek_client.py` — async OpenAI-compatible API client with 429 retry
+- [x] Implement `run_agentic_loop()` — DeepSeek OpenAI tool-calling orchestrator loop
+- [x] Implement `mcp_tools_to_openai()` — convert MCP TOOLS to OpenAI function format
+- [x] Implement `agents/insight_agent.py` — causal chain extractor with dollar-figure impact
+- [x] Write Insight Agent `_SYSTEM_PROMPT` enforcing cause→effect→financial_impact schema
+- [x] Implement `agents/planner_agent.py` — ranked action generator with constraint validation
+- [x] Write Planner Agent `_SYSTEM_PROMPT` with full action schema and feasibility rules
+- [x] Implement `agents/executor_agent.py` — mock API dispatcher with before/after state capture
+- [x] Wire executor to call inventory, routing, pricing, notifications mock APIs
+- [x] Implement retry + rollback logic per action (max_retries from constraints)
+- [x] Verify Insight Agent produces causal chains with non-zero financial_impact_usd
+- [x] Verify Planner Agent ranks by estimated_savings_usd and marks infeasible actions
+- [x] Verify Executor Agent captures penalty_delta_usd correctly before/after each action

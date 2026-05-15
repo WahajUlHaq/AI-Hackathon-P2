@@ -1,0 +1,14 @@
+- [x] Design Gemini multi-turn function-calling agentic loop
+- [x] Convert MCP TOOLS list to Gemini `FunctionDeclaration` objects via `_to_gemini_tools()`
+- [x] Write `_SYSTEM_INSTRUCTION` prompt enforcing strict 4-step pipeline order
+- [x] Implement `run_orchestrated()` async entry point accepting `AnalyzeRequest`
+- [x] Pre-load sources into `_sessions[session_id]` before Gemini loop starts
+- [x] Implement multi-turn `contents` list with user message → function call → function response cycle
+- [x] Handle Gemini 429 quota exhaustion by switching to DeepSeek fallback
+- [x] Handle Gemini safety-filtered / empty-candidate responses gracefully
+- [x] Implement `_compact_tool_result()` to keep Gemini context window small
+- [x] Implement `_tool_to_agent()` mapping for SSE trace labels
+- [x] Implement Python hardcoded fallback for any skipped pipeline stages
+- [x] Emit SSE events (`orchestrator_start`, `tool_call`, `tool_result`, `orchestrator_done`) at every step
+- [x] Build `AnalyzeResponse` from session data after loop exits
+- [x] Verify Gemini calls all 4 tools in correct order on Port of Karachi scenario

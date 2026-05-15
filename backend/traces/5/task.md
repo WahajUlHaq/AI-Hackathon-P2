@@ -1,0 +1,14 @@
+- [x] Design multi-source parser supporting 5 source types (realtime_feed, dashboard, news_article, pdf_report, csv_json)
+- [x] Implement credibility scoring per source type with timestamp-based penalty
+- [x] Implement contradiction detection: same metric, conflicting values across sources
+- [x] Implement contradiction resolution: prefer higher-credibility + more-recent source
+- [x] Implement temporal signal detection: metrics changing across sources over time
+- [x] Implement noise filtering: mark stale (<0.30 credibility) or duplicate sources
+- [x] Write `_SYSTEM_PROMPT` enforcing strict JSON output schema with all required fields
+- [x] Implement `check_parsed()` contract validator — PASS / WARN / REJECT with correction hints
+- [x] Implement `check_insight()` contract validator
+- [x] Implement `check_plan()` contract validator
+- [x] Wire retry loop (max 3×) with correction_hint injected on REJECT
+- [x] Implement `content_fetcher.py` — URL → HTML strip (12k chars) / URL → PDF extract (pypdf) / plain text pass-through
+- [x] Verify parser extracts 5-source conflict scenario with correct resolution
+- [x] Verify contract rejects malformed output and retries with correction hint

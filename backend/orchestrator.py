@@ -166,9 +166,12 @@ async def run_orchestrated(
             )
         except Exception as gemini_exc:
             # All Gemini models exhausted — hand off to DeepSeek orchestrator
-            await sse_emit("orchestrator_start", {
-                "message": "Gemini quota exhausted — switching to DeepSeek orchestrator",
-                "tool_calls_total": tool_call_count,
+            # NOTE: do NOT emit another orchestrator_start — one was already fired at the top.
+            # Emit a tool_call so the think-stream shows the fallback transparently.
+            await sse_emit("tool_call", {
+                "tool": "_switch_to_deepseek",
+                "args": {"reason": "Gemini quota exhausted"},
+                "call_number": tool_call_count,
             })
 
             async def _tool_exec(name: str, args: dict):
@@ -180,7 +183,19 @@ async def run_orchestrated(
                     args["session_id"] = session_id
                 r = await _handle_tool_call(name, args, state)
                 text = r["content"][0]["text"] if r.get("content") else "{}"
-                return text, r.get("isError", False)
+                is_error = r.get("isError", False)
+                # Populate trace so agent_trace is never empty after DeepSeek runs
+                try:
+                    result_json = json.loads(text)
+                except Exception:
+                    result_json = {"raw": text}
+                trace.append(AgentStep(
+                    agent=_tool_to_agent(name),
+                    status="error" if is_error else "done",
+                    output=result_json if not is_error else None,
+                    error=text if is_error else None,
+                ))
+                return text, is_error
 
             await ds_agentic_loop(
                 system_prompt=_SYSTEM_INSTRUCTION,

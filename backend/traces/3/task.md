@@ -1,0 +1,13 @@
+- [x] Design MCP Streamable HTTP endpoint at `POST /mcp/`
+- [x] Register all 14 tool declarations with JSON Schema input validation
+- [x] Implement `parse_sources` unified multi-source tool
+- [x] Implement `parse_csv_source`, `parse_pdf_source`, `parse_news_source`, `parse_dashboard_source`, `parse_realtime_source` individual tools
+- [x] Implement `extract_insights` tool with causal chain output schema
+- [x] Implement `plan_actions` tool with ranked action list + constraint validation
+- [x] Implement `execute_action` tool with mock API dispatch + before/after state snapshot
+- [x] Implement `get_system_state`, `reset_state`, `get_inventory`, `get_routes`, `send_notification` utility tools
+- [x] Wire `_handle_tool_call` dispatcher to route all tool calls to agent pipeline
+- [x] Attach `mcp_router` to FastAPI app
+- [x] Expose `mcp_config.json` for Google Antigravity runtime registration
+- [x] Verify tool registration via `tools/list` JSON-RPC call
+- [x] Verify end-to-end tool call via `tools/call` JSON-RPC call
