@@ -204,7 +204,7 @@
     <div class="logo">Autonomous AI Pipeline <span>· Content-to-Action</span></div>
     <div style="display:flex;gap:1rem;align-items:center;">
         <div id="status-pill">IDLE</div>
-        <a href="http://localhost:8000/docs" target="_blank" style="color:var(--muted);text-decoration:none;font-size:.82rem;">Swagger ↗</a>
+        <a id="swagger-link" href="/docs" target="_blank" style="color:var(--muted);text-decoration:none;font-size:.82rem;">Swagger ↗</a>
     </div>
 </header>
 
@@ -285,7 +285,7 @@
 </div>
 
 <script>
-const API_BASE = "http://localhost:8000/api/v1";
+const API_BASE = window.location.origin + "/api/v1";
 let eventSource = null, currentJobId = null, lastStage = 0;
 
 let sources = [
