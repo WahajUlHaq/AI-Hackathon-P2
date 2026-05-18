@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autonomous Content-to-Action Agent</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Raleway:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-dark: #0c1120;
@@ -31,6 +31,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            padding-bottom: 32px;
         }
         header {
             padding: 1rem 2rem;
@@ -739,5 +740,87 @@ function syntaxHighlight(json) {
 
 renderSources();
 </script>
+
+<div id="floud-bar">
+  <span class="floud-brand">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle;margin-right:5px"><circle cx="7" cy="7" r="7" fill="rgba(255,255,255,0.25)"/><path d="M4 7.5h6M7 4.5v6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Floud &nbsp;<span class="floud-by">by <a href="https://www.codexflow.co" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:2px;opacity:0.85;font-family:'Raleway',sans-serif;font-weight:700;letter-spacing:0.5px;">CodeXFlow</a></span>
+  </span>
+  <span class="floud-divider">|</span>
+  <span class="floud-server">Server ID: <code>fl-cxf-2938</code></span>
+  <span class="floud-status">
+    <span class="floud-dot"></span> Operational
+  </span>
+  <span class="floud-divider">|</span>
+  <span class="floud-uptime">Uptime: <code id="floud-uptime-counter">00:00:00</code></span>
+</div>
+
+<script>
+(function() {
+  const start = Date.now();
+  function pad(n) { return String(n).padStart(2, '0'); }
+  setInterval(function() {
+    const elapsed = Math.floor((Date.now() - start) / 1000);
+    const h = Math.floor(elapsed / 3600);
+    const m = Math.floor((elapsed % 3600) / 60);
+    const s = elapsed % 60;
+    const el = document.getElementById('floud-uptime-counter');
+    if (el) el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+  }, 1000);
+})();
+</script>
+
+<style>
+#floud-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: #0053e1;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 0.45rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  user-select: none;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.35);
+}
+.floud-brand { font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; }
+.floud-by { font-weight: 400; opacity: 0.8; font-size: 0.75rem; margin-left: 4px; }
+.floud-divider { opacity: 0.4; }
+.floud-server code {
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255,255,255,0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+.floud-status { display: flex; align-items: center; gap: 5px; margin-left: auto; }
+.floud-uptime { display: flex; align-items: center; gap: 4px; }
+.floud-uptime code {
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255,255,255,0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+.floud-dot {
+  width: 7px; height: 7px;
+  background: #2ecc71;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px #2ecc71;
+  animation: floud-pulse 2s infinite;
+}
+@keyframes floud-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+</style>
 </body>
 </html>
