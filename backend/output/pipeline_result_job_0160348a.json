@@ -1,0 +1,134 @@
+{
+  "job_id": "job_0160348a",
+  "status": "completed",
+  "pipeline_duration_ms": 4382,
+  "ingestion": {
+    "content_blocks": [
+      {
+        "source_type": "MockFeed",
+        "source_label": "string",
+        "raw_text": "",
+        "timestamp": "string",
+        "credibility_score": 0.0,
+        "domain": "social",
+        "is_stale": false,
+        "is_noise": true,
+        "noise_reason": "no posts could be extracted",
+        "word_count": 0,
+        "language": "en",
+        "extraction_method": "keyword_matching",
+        "metadata": {
+          "post_count": 0,
+          "volume_spike_pct": 0,
+          "sentiment_score": 0.0,
+          "top_topics": {},
+          "verified_employees": 0
+        },
+        "id": "cb_001",
+        "trust_score": 0.0,
+        "correctness_score": 0.0,
+        "correctness_label": "LIKELY_FALSE"
+      }
+    ],
+    "ingestion_summary": {
+      "total_sources": 1,
+      "noise_filtered": 1,
+      "stale_flagged": 0,
+      "domains_detected": [],
+      "source_types_used": [
+        "MockFeed"
+      ],
+      "parallel_execution_ms": 3
+    }
+  },
+  "insights": {
+    "insights": [],
+    "temporal_signals": [],
+    "overall_confidence": 0.0,
+    "sources_used": [],
+    "sources_excluded": [
+      "cb_001"
+    ],
+    "excluded_reason": "cb_001 \u2014 Block is marked as noise (is_noise=true), indicating it is irrelevant or spam.",
+    "agent_reasoning": "No content blocks available for analysis."
+  },
+  "action_plan": {
+    "action_plan": [],
+    "plan_summary": "No actions planned",
+    "total_estimated_cost_usd": 0,
+    "estimated_resolution_hours": 4,
+    "actions_total": 0,
+    "actions_feasible": 0,
+    "actions_modified": 0,
+    "actions_rejected": 0,
+    "agent_reasoning": "No high-urgency insights found. Monitoring actions recommended as precaution."
+  },
+  "execution": {
+    "execution_log": [],
+    "execution_summary": {
+      "total_actions": 0,
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 0,
+      "failed_action_ids": [],
+      "skipped_action_ids": [],
+      "execution_start": "2026-05-16T01:28:18Z",
+      "execution_end": "2026-05-16T01:28:18Z",
+      "total_duration_ms": 0,
+      "failure_reason": null,
+      "recovery_needed": false
+    }
+  },
+  "recovery": {
+    "recovered_actions": [],
+    "unblocked_actions": [],
+    "recovery_summary": "Successfully executed fallback for 0 failed actions."
+  },
+  "final_report": {
+    "before_after": [
+      {
+        "system": "Source Verification",
+        "before": "1 raw sources: unverified, potentially conflicting",
+        "after": "0 LIKELY_TRUE, 1 LIKELY_FALSE. 0 conflict(s) detected and resolved.",
+        "change_type": "POSITIVE"
+      }
+    ],
+    "action_timeline": [],
+    "projected_impact": {
+      "sources_analyzed": 1,
+      "sources_verified_true": 0,
+      "sources_flagged_false": 1,
+      "noise_items_filtered": 1,
+      "conflicts_resolved": 0,
+      "insights_generated": 0,
+      "overall_confidence": 0.0,
+      "actions_completed": 0,
+      "actions_total": 0,
+      "actions_via_fallback": 0,
+      "people_notified": 8
+    },
+    "antigravity_trace": {
+      "workplan": "7-stage pipeline: parallel parse \u2192 flag/verify (LLM) \u2192 insight extraction (LLM) \u2192 action planning (LLM) \u2192 execution \u2192 recovery \u2192 reporting",
+      "task_plan": [
+        "Stage 1: Parse 1 sources in parallel \u2014 3ms",
+        "Stage 2: FlagAgent \u2014 0 conflict(s), 1 false-flagged (LLM conflict detection)",
+        "Stage 3: InsightAgent \u2014 0 insights extracted, confidence=0.00",
+        "Stage 4: PlanAgent \u2014 0-step action plan generated",
+        "Stage 5: ExecutorAgent \u2014 0 SUCCESS, 0 FAILED, 0 SKIPPED",
+        "Stage 6: RecoveryAgent \u2014 0 action(s) recovered, 0 unblocked",
+        "Stage 7: ReporterAgent \u2014 final report compiled from actual pipeline data"
+      ],
+      "reasoning_steps": [
+        "Stage 2: cb_001 false-flagged \u2014 Block is marked as noise (is_noise=true), indicating it is irrelevant or spam."
+      ],
+      "tool_calls": [
+        "agent1e: string \u2192 0 words",
+        "agent2: trust scoring (Python) + conflict detection (LLM, temp=0.1)",
+        "agent3: insight extraction (LLM, temp=0.3) \u2192 0 insights",
+        "agent4: action planning (LLM, temp=0.1) \u2192 0 actions"
+      ],
+      "failures_and_recovery": [],
+      "final_outcome": "0/0 actions completed (0 via fallback). 1 false source(s) excluded from all outputs. 0 insights extracted across 0 verified sources. System confidence: 0%."
+    }
+  }
+}

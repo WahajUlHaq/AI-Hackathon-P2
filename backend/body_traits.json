@@ -1,0 +1,42 @@
+{
+  "body_traits": {
+    "estimated_height_px": 1148,
+    "estimated_width_px": 664,
+    "torso_length_px": 322,
+    "leg_length_px": 424,
+    "torso_to_leg_ratio": 0.759,
+    "note": "Proportions estimated from bounding box (no pose model required)."
+  },
+  "clothing_regions": {
+    "Hat / Head": {
+      "dominant_colour": "#45352D",
+      "colour_name": "Gray",
+      "pixel_count": 108428,
+      "coverage_%": 11.77
+    },
+    "Upper-clothes": {
+      "dominant_colour": "#331F16",
+      "colour_name": "Black",
+      "pixel_count": 176102,
+      "coverage_%": 19.11
+    },
+    "Lower-clothes": {
+      "dominant_colour": "#C49D96",
+      "colour_name": "Orange / Red",
+      "pixel_count": 109527,
+      "coverage_%": 11.88
+    },
+    "Legs / Pants-lower": {
+      "dominant_colour": "#D79F8D",
+      "colour_name": "Orange / Red",
+      "pixel_count": 124555,
+      "coverage_%": 13.52
+    },
+    "Shoes": {
+      "dominant_colour": "#B38378",
+      "colour_name": "Orange / Red",
+      "pixel_count": 50417,
+      "coverage_%": 5.47
+    }
+  }
+}

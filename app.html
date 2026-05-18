@@ -80,21 +80,6 @@ textarea{resize:vertical;font-family:"Cascadia Code","Fira Code",Consolas,monosp
 .status-badge.done{background:rgba(63,185,80,.15);color:var(--green);}
 .status-badge.error{background:rgba(248,81,73,.15);color:var(--red);}
 
-/* RATE LIMIT BAR */
-.rl-bar{background:var(--sur);border:1px solid var(--brd);border-radius:7px;padding:.6rem .8rem;margin-bottom:.8rem;}
-.rl-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;}
-.rl-title{font-size:.72rem;font-weight:700;color:var(--muted);}
-.rl-count{font-size:.72rem;font-weight:800;}
-.rl-count.ok{color:var(--green);}
-.rl-count.warn{color:var(--yellow);}
-.rl-count.full{color:var(--red);}
-.rl-track{height:6px;background:var(--sur2);border-radius:3px;overflow:hidden;margin-bottom:.35rem;}
-.rl-fill{height:100%;border-radius:3px;transition:width .4s,background .4s;}
-.rl-reset{font-size:.68rem;color:var(--muted);}
-.rl-blocked{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);border-radius:7px;padding:.6rem .8rem;margin-bottom:.8rem;text-align:center;}
-.rl-blocked-title{font-size:.85rem;font-weight:800;color:var(--red);margin-bottom:.3rem;}
-.rl-blocked-msg{font-size:.75rem;color:var(--muted);margin-bottom:.5rem;}
-.rl-countdown{font-size:1.1rem;font-weight:800;color:var(--red);font-family:"Cascadia Code",Consolas,monospace;}
 
 /* CURRENT STATE BOX */
 .state-box{background:var(--sur);border:1px solid var(--brd);border-radius:7px;margin-top:.8rem;overflow:hidden;}
@@ -123,23 +108,24 @@ textarea{resize:vertical;font-family:"Cascadia Code","Fira Code",Consolas,monosp
 .rs-rerouted{background:rgba(210,153,34,.2);color:var(--yellow);}
 .route-eta{color:var(--muted);margin-left:.4rem;}
 
-/* CENTER: SSE STREAM */
-.sse-empty{text-align:center;color:var(--muted);padding:3rem 1rem;font-size:.82rem;}
-.sse-event{display:flex;align-items:flex-start;gap:.7rem;padding:.55rem .7rem;border-radius:6px;background:var(--sur);border:1px solid var(--brd);margin-bottom:.4rem;cursor:pointer;transition:border-color .1s;}
-.sse-event:hover{border-color:var(--blue);}
-.sse-tag{flex-shrink:0;border-radius:4px;padding:.12rem .55rem;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
-.t-start{background:rgba(88,166,255,.2);color:var(--blue);}
-.t-call{background:rgba(210,153,34,.2);color:var(--yellow);}
-.t-result-ok{background:rgba(63,185,80,.2);color:var(--green);}
-.t-result-err{background:rgba(248,81,73,.2);color:var(--red);}
-.t-done{background:rgba(188,140,255,.2);color:var(--purple);}
-.t-error{background:rgba(248,81,73,.2);color:var(--red);}
-.sse-main{flex:1;min-width:0;}
-.sse-title{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sse-sub{font-size:.72rem;color:var(--muted);font-family:"Cascadia Code","Fira Code",Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem;}
-.sse-ts{flex-shrink:0;font-size:.65rem;color:var(--muted);margin-top:2px;}
-.sse-detail{display:none;margin-top:.5rem;background:var(--bg);border-radius:4px;padding:.5rem;font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.68rem;color:var(--muted);white-space:pre-wrap;max-height:200px;overflow-y:auto;}
-.sse-event.open .sse-detail{display:block;}
+/* CENTER: THINK STREAM */
+.sse-empty{text-align:center;color:var(--muted);padding:3rem 1rem;font-size:.82rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;}
+.sse-empty-icon{font-size:2rem;opacity:.5;}
+.think-log{font-family:"Cascadia Code","Fira Code",Consolas,monospace;font-size:.72rem;line-height:1.75;padding:.7rem .9rem;display:flex;flex-direction:column;}
+.tl{display:flex;gap:.55rem;animation:tl-in .15s ease both;}
+@keyframes tl-in{from{opacity:0;transform:translateY(2px);}to{opacity:1;transform:none;}}
+@keyframes word-blur-in{from{filter:blur(5px);opacity:0;}to{filter:blur(0);opacity:1;}}
+.tl-w{display:inline-block;animation:word-blur-in .45s ease both;}
+.tl-ts{color:#3a3f4b;flex-shrink:0;user-select:none;}
+.tl-icon{flex-shrink:0;width:1.1rem;text-align:center;}
+.tl-text{color:#8b949e;}
+.tl-start .tl-text{color:#8b949e;}
+.tl-call .tl-text{color:#58a6ff;}
+.tl-ok .tl-text{color:#3fb950;}
+.tl-err .tl-text{color:#f85149;}
+.tl-done .tl-text{color:#bc8cff;font-weight:700;}
+.tl-sep{border-top:1px solid #21262d;margin:.5rem 0;width:100%;}
+.tl-sub{color:#484f58;font-size:.66rem;padding-left:2.8rem;margin-top:-.2rem;animation:word-blur-in .5s ease both;}
 #sse-count{font-size:.72rem;color:var(--muted);margin-left:auto;}
 
 /* RIGHT: RESULTS */
@@ -148,7 +134,8 @@ textarea{resize:vertical;font-family:"Cascadia Code","Fira Code",Consolas,monosp
 .tab-btn.active{background:rgba(88,166,255,.12);border-color:rgba(88,166,255,.35);color:var(--blue);}
 .tab-btn:hover:not(.active){border-color:var(--brd);color:var(--text);}
 .tab-pane{display:none;}
-.tab-pane.active{display:block;}
+.tab-pane.active{display:block;animation:tab-reveal .4s ease both;}
+@keyframes tab-reveal{from{opacity:0;filter:blur(8px);transform:translateY(4px);}to{opacity:1;filter:blur(0);transform:none;}}
 
 /* RESULT COMPONENTS */
 .stat-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
@@ -309,6 +296,85 @@ hr.divider{border:none;border-top:1px solid var(--brd);margin:.8rem 0;}
   body{overflow:auto;}
   .panel{min-height:300px;border-right:none;border-bottom:1px solid var(--brd);}
 }
+
+/* ── AGENTS PARALLEL GRID ───────────────────────────────────────────────── */
+.agents-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;
+  padding:.65rem .8rem;border-bottom:1px solid var(--brd);flex-shrink:0;
+  background:rgba(13,17,23,.6);
+}
+.agent-tile{
+  border-radius:8px;border:1px solid var(--brd);padding:.5rem .5rem .45rem;
+  display:flex;flex-direction:column;align-items:center;gap:.25rem;
+  background:rgba(22,27,34,.7);
+  transition:border-color .3s,box-shadow .3s,background .3s;
+  position:relative;overflow:hidden;
+}
+.agent-tile::before{
+  content:'';position:absolute;inset:0;border-radius:8px;opacity:0;
+  transition:opacity .4s;pointer-events:none;
+}
+.agent-tile.idle::before{background:none;}
+.agent-tile.active{
+  border-color:rgba(88,166,255,.6);
+  box-shadow:0 0 14px rgba(88,166,255,.18),inset 0 0 12px rgba(88,166,255,.06);
+  background:rgba(88,166,255,.05);
+}
+.agent-tile.active::before{
+  background:radial-gradient(ellipse at 50% 0%,rgba(88,166,255,.12) 0%,transparent 70%);
+  opacity:1;
+}
+.agent-tile.done{
+  border-color:rgba(63,185,80,.5);
+  box-shadow:0 0 10px rgba(63,185,80,.12);
+  background:rgba(63,185,80,.04);
+}
+.agent-tile.done::before{
+  background:radial-gradient(ellipse at 50% 0%,rgba(63,185,80,.1) 0%,transparent 70%);
+  opacity:1;
+}
+.agent-tile.error-state{border-color:rgba(248,81,73,.5);background:rgba(248,81,73,.04);}
+.agent-icon{font-size:1.1rem;line-height:1;}
+.agent-label{font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);transition:color .3s;}
+.agent-tile.active .agent-label{color:var(--blue);}
+.agent-tile.done .agent-label{color:var(--green);}
+.agent-status-dot{width:6px;height:6px;border-radius:50%;background:var(--brd);transition:background .3s,box-shadow .3s;}
+.agent-tile.active .agent-status-dot{background:var(--blue);box-shadow:0 0 6px var(--blue);animation:dot-pulse 1s ease-in-out infinite;}
+.agent-tile.done .agent-status-dot{background:var(--green);box-shadow:0 0 4px var(--green);animation:none;}
+.agent-tile.error-state .agent-status-dot{background:var(--red);animation:none;}
+@keyframes dot-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.7);}}
+
+/* scan-line shimmer on active tile */
+.agent-tile.active::after{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(88,166,255,.08),transparent);
+  animation:scan-line 1.8s linear infinite;
+}
+@keyframes scan-line{to{left:150%;}}
+
+/* ── STREAM PANEL LIVE HEADER ────────────────────────────────────────────── */
+.live-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--brd);flex-shrink:0;
+  transition:background .3s,box-shadow .3s;
+}
+.live-dot.pulsing{
+  background:var(--blue);box-shadow:0 0 0 0 rgba(88,166,255,.6);
+  animation:live-ring 1.2s ease-out infinite;
+}
+.live-dot.done{background:var(--green);box-shadow:0 0 4px var(--green);animation:none;}
+@keyframes live-ring{
+  0%{box-shadow:0 0 0 0 rgba(88,166,255,.6);}
+  70%{box-shadow:0 0 0 6px rgba(88,166,255,0);}
+  100%{box-shadow:0 0 0 0 rgba(88,166,255,0);}
+}
+.stream-panel-header{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.7rem 1rem;border-bottom:1px solid var(--brd);
+  font-weight:700;font-size:.82rem;color:var(--muted);
+  letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;
+}
+
+/* ── think-log already defined above ─── */
 </style>
 </head>
 <body>
@@ -352,24 +418,6 @@ hr.divider{border:none;border-top:1px solid var(--brd);margin:.8rem 0;}
 
       <hr class="divider"/>
 
-      <!-- Rate Limit Bar -->
-      <div id="rl-bar-wrap">
-        <div class="rl-bar" id="rl-bar">
-          <div class="rl-bar-top">
-            <span class="rl-title">🔒 Hourly Quota</span>
-            <span class="rl-count ok" id="rl-count">0 used out of 3</span>
-          </div>
-          <div class="rl-track"><div class="rl-fill" id="rl-fill" style="width:0%;background:var(--green);"></div></div>
-          <div class="rl-reset" id="rl-reset">Resets every hour</div>
-        </div>
-        <div class="rl-blocked" id="rl-blocked" style="display:none;">
-          <div class="rl-blocked-title">⏱ Hourly limit reached</div>
-          <div class="rl-blocked-msg">You've used all requests for this hour.</div>
-          <div class="rl-countdown" id="rl-countdown">—</div>
-          <div style="font-size:.68rem;color:var(--muted);margin-top:.3rem;">Come back when the timer hits 00:00</div>
-        </div>
-      </div>
-
       <!-- Sources container -->
       <div id="sources-container"></div>
       <button class="btn-add" onclick="addSource()">+ Add Source</button>
@@ -395,11 +443,42 @@ hr.divider{border:none;border-top:1px solid var(--brd);margin:.8rem 0;}
 
   <!-- ── CENTER: SSE STREAM ── -->
   <div class="panel">
-    <div class="panel-head">📡 Live Pipeline Trace <span id="sse-count"></span></div>
-    <div class="panel-body" id="sse-body">
-      <div class="sse-empty" id="sse-empty">
-        <div style="font-size:2rem;margin-bottom:.8rem;">📡</div>
-        Open the SSE stream and POST sources to see real-time events appear here.
+    <div class="stream-panel-header">
+      <div class="live-dot" id="live-dot"></div>
+      <span>Live Pipeline Trace</span>
+      <span id="sse-count"></span>
+    </div>
+
+    <!-- Agents parallel grid (always visible, states change during run) -->
+    <div class="agents-grid" id="agents-grid">
+      <div class="agent-tile idle" id="agent-parser">
+        <div class="agent-icon">🔵</div>
+        <div class="agent-label">Parser</div>
+        <div class="agent-status-dot"></div>
+      </div>
+      <div class="agent-tile idle" id="agent-insight">
+        <div class="agent-icon">🟡</div>
+        <div class="agent-label">Insight</div>
+        <div class="agent-status-dot"></div>
+      </div>
+      <div class="agent-tile idle" id="agent-planner">
+        <div class="agent-icon">🟠</div>
+        <div class="agent-label">Planner</div>
+        <div class="agent-status-dot"></div>
+      </div>
+      <div class="agent-tile idle" id="agent-executor">
+        <div class="agent-icon">🔴</div>
+        <div class="agent-label">Executor</div>
+        <div class="agent-status-dot"></div>
+      </div>
+    </div>
+
+    <div class="panel-body" id="sse-body" style="padding:0;overflow-y:auto;">
+      <div class="think-log" id="sse-inner">
+        <div class="sse-empty" id="sse-empty">
+          <span class="sse-empty-icon">📡</span>
+          Open the SSE stream and POST sources to see real-time events appear here.
+        </div>
       </div>
     </div>
   </div>
@@ -460,7 +539,6 @@ window.addEventListener('DOMContentLoaded', () => {
   refreshSessionId();
   addSource();
   checkHealth();
-  syncRateLimit();   // load quota from backend (non-destructive)
   // Fix docs link — on Render, docs are served at /docs (FastAPI OpenAPI UI)
   const docsLink = document.getElementById('docs-link');
   if (docsLink) docsLink.href = BASE + '/docs';
@@ -484,109 +562,6 @@ async function checkHealth() {
     dot.className = 'health-dot offline';
     lbl.textContent = 'Backend Offline';
   }
-}
-
-// ── RATE LIMIT ────────────────────────────────────────────────────────────────
-const RL_KEY = 'chainsight_rl';  // localStorage key
-
-function _saveRL(used, resetUnix) {
-  localStorage.setItem(RL_KEY, JSON.stringify({ used, resetUnix }));
-}
-
-function _loadRL() {
-  try {
-    const d = JSON.parse(localStorage.getItem(RL_KEY) || '{}');
-    const now = Math.floor(Date.now() / 1000);
-    // If reset time has passed, clear stored count
-    if (d.resetUnix && now >= d.resetUnix) {
-      localStorage.removeItem(RL_KEY);
-      return { used: 0, resetUnix: null };
-    }
-    return { used: d.used || 0, resetUnix: d.resetUnix || null };
-  } catch { return { used: 0, resetUnix: null }; }
-}
-
-function updateRLUI(used, limit, resetUnix) {
-  const pct = Math.min(100, (used / limit) * 100);
-  const remaining = Math.max(0, limit - used);
-  const barEl = document.getElementById('rl-bar');
-  const blockedEl = document.getElementById('rl-blocked');
-  const fillEl = document.getElementById('rl-fill');
-  const countEl = document.getElementById('rl-count');
-  const resetEl = document.getElementById('rl-reset');
-  const analyzeBtn = document.getElementById('analyze-btn');
-
-  const color = pct < 50 ? 'var(--green)' : pct < 84 ? 'var(--yellow)' : 'var(--red)';
-  const countClass = pct < 50 ? 'ok' : pct < 84 ? 'warn' : 'full';
-
-  fillEl.style.width = pct + '%';
-  fillEl.style.background = color;
-  countEl.textContent = `${used} / ${limit} used`;
-  countEl.className = 'rl-count ' + countClass;
-
-  if (resetUnix) {
-    const d = new Date(resetUnix * 1000);
-    resetEl.textContent = `Resets at ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-  } else {
-    resetEl.textContent = 'Resets every hour';
-  }
-
-  if (used >= limit) {
-    // Blocked
-    barEl.style.display = 'none';
-    blockedEl.style.display = 'block';
-    analyzeBtn.disabled = true;
-    startCountdown(resetUnix);
-    toast(`⏱ Hourly limit reached — ${remaining} of ${limit} requests used. Try again when the timer hits 00:00.`, 'error');
-  } else {
-    barEl.style.display = 'block';
-    blockedEl.style.display = 'none';
-    analyzeBtn.disabled = false;
-    stopCountdown();
-    if (remaining === 1) {
-      toast(`⚠️ Last request remaining this hour!`, 'error');
-    }
-  }
-}
-
-function startCountdown(resetUnix) {
-  stopCountdown();
-  const el = document.getElementById('rl-countdown');
-  function tick() {
-    const now = Math.floor(Date.now() / 1000);
-    const secs = Math.max(0, resetUnix - now);
-    const m = String(Math.floor(secs / 60)).padStart(2, '0');
-    const s = String(secs % 60).padStart(2, '0');
-    el.textContent = `${m}:${s}`;
-    if (secs === 0) {
-      stopCountdown();
-      // Auto-unblock
-      localStorage.removeItem(RL_KEY);
-      updateRLUI(0, 6, null);
-      toast('✅ Hourly quota reset — you can analyze again!', 'success');
-    }
-  }
-  tick();
-  _rlCountdownTimer = setInterval(tick, 1000);
-}
-
-function stopCountdown() {
-  if (_rlCountdownTimer) { clearInterval(_rlCountdownTimer); _rlCountdownTimer = null; }
-}
-
-async function syncRateLimit() {
-  // First apply whatever is in localStorage immediately (instant UI)
-  const local = _loadRL();
-  updateRLUI(local.used, 6, local.resetUnix);
-
-  // Then sync with backend for accurate server-side count
-  try {
-    const r = await fetch(BASE + '/api/rate-limit', { signal: AbortSignal.timeout(5000) });
-    if (!r.ok) return;
-    const d = await r.json();
-    _saveRL(d.requests_used, d.reset_at_unix);
-    updateRLUI(d.requests_used, d.limit, d.reset_at_unix);
-  } catch {}
 }
 
 // ── CURRENT STATE ────────────────────────────────────────────────────────────
@@ -807,7 +782,59 @@ function loadPreset(name) {
 // ── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  document.querySelectorAll('.tab-pane').forEach(p => {
+    const isActive = p.id === 'tab-' + name;
+    if (isActive && !p.classList.contains('active')) {
+      // Remove and re-add active to re-trigger the CSS animation
+      p.classList.remove('active');
+      void p.offsetWidth; // force reflow
+      p.classList.add('active');
+    } else if (!isActive) {
+      p.classList.remove('active');
+    }
+  });
+}
+
+// ── AGENT TILE HELPERS ────────────────────────────────────────────────────────
+const _toolToAgent = {
+  parse_sources:    'parser',
+  extract_insights: 'insight',
+  plan_actions:     'planner',
+  execute_action:   'executor',
+};
+
+function _setAgentState(name, state) {
+  const el = document.getElementById('agent-' + name);
+  if (!el) return;
+  el.className = 'agent-tile ' + state;
+}
+
+function _activateAgent(toolName) {
+  const agent = _toolToAgent[toolName];
+  if (agent) _setAgentState(agent, 'active');
+}
+
+function _completeAgent(toolName, success) {
+  const agent = _toolToAgent[toolName];
+  if (agent) _setAgentState(agent, success ? 'done' : 'error-state');
+}
+
+function _resetAgents() {
+  ['parser','insight','planner','executor'].forEach(a => _setAgentState(a, 'idle'));
+}
+
+// Fire all 4 agents into "queued" animation staggered to look simultaneous
+function _burstAgents() {
+  const agents = ['parser','insight','planner','executor'];
+  agents.forEach((a, i) => {
+    setTimeout(() => {
+      const el = document.getElementById('agent-' + a);
+      if (el && el.classList.contains('idle')) {
+        el.classList.remove('idle');
+        el.classList.add('active');
+      }
+    }, i * 80); // 80ms stagger — fast enough to look parallel
+  });
 }
 
 // ── SSE STREAM ───────────────────────────────────────────────────────────────
@@ -815,75 +842,165 @@ let sseEventCount = 0;
 
 function clearSSE() {
   sseEventCount = 0;
-  document.getElementById('sse-body').innerHTML = `<div class="sse-empty" id="sse-empty"><div style="font-size:2rem;margin-bottom:.8rem;">📡</div>Connecting...</div>`;
+  _resetAgents();
+  const inner = document.getElementById('sse-inner');
+  if (inner) inner.innerHTML = `<div class="sse-empty" id="sse-empty"><span class="sse-empty-icon">📡</span>Connecting...</div>`;
   document.getElementById('sse-count').textContent = '';
+  const ld = document.getElementById('live-dot');
+  if (ld) { ld.className = 'live-dot'; ld.style.background = ''; }
 }
 
-function appendSSEEvent(type, data) {
+function appendThinkLine(cls, icon, text, sub) {
   const empty = document.getElementById('sse-empty');
   if (empty) empty.remove();
   sseEventCount++;
   document.getElementById('sse-count').textContent = `(${sseEventCount})`;
-
-  const tagMap = {
-    start:'t-start',call:'t-call',result_ok:'t-result-ok',result_err:'t-result-err',done:'t-done',error:'t-error'
-  };
-  const labelMap = {start:'START',call:'CALL',result_ok:'RESULT ✓',result_err:'RESULT ✗',done:'DONE',error:'ERROR'};
-
-  const el = document.createElement('div');
-  el.className = 'sse-event';
-  el.addEventListener('click', () => el.classList.toggle('open'));
-
   const now = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const title = data.tool || data.message || type;
-  const sub = typeof data === 'object' ? JSON.stringify(data).slice(0,80) : '';
-  const detail = JSON.stringify(data, null, 2);
-
-  el.innerHTML = `
-    <span class="sse-tag ${tagMap[type]||'t-done'}">${labelMap[type]||type.toUpperCase()}</span>
-    <div class="sse-main">
-      <div class="sse-title">${escHtml(String(title))}</div>
-      <div class="sse-sub">${escHtml(sub)}</div>
-      <pre class="sse-detail">${escHtml(detail)}</pre>
-    </div>
-    <span class="sse-ts">${now}</span>`;
-
+  const inner = document.getElementById('sse-inner');
+  const line = document.createElement('div');
+  line.className = `tl tl-${cls}`;
+  // Word-by-word blur reveal
+  const wordSpans = escHtml(text).split(' ').map((w, i) =>
+    `<span class="tl-w" style="animation-delay:${i * 38}ms">${w}</span>`
+  ).join(' ');
+  line.innerHTML = `<span class="tl-ts">${now}</span><span class="tl-icon">${icon}</span><span class="tl-text">${wordSpans}</span>`;
+  inner.appendChild(line);
+  if (sub) {
+    const s = document.createElement('div');
+    s.className = 'tl-sub';
+    s.textContent = sub;
+    inner.appendChild(s);
+  }
   const body = document.getElementById('sse-body');
-  body.appendChild(el);
   body.scrollTop = body.scrollHeight;
 }
+
+
 
 function openSSE(sessionId) {
   if (activeES) { activeES.close(); activeES = null; }
   clearSSE();
 
+  const ld = document.getElementById('live-dot');
+  if (ld) ld.className = 'live-dot pulsing';
+
   const es = new EventSource(`${BASE}/api/stream/${encodeURIComponent(sessionId)}`);
   activeES = es;
 
   es.addEventListener('orchestrator_start', e => {
-    try { appendSSEEvent('start', JSON.parse(e.data)); } catch { appendSSEEvent('start', {raw:e.data}); }
+    try {
+      const d = JSON.parse(e.data);
+      const n = d.sources_count || 1;
+      appendThinkLine('start', '◎',
+        `Analysis is kicking off. I've received ${n} source${n > 1 ? 's' : ''} and loaded ` +
+        `them into the session. The orchestrator is now deciding which tools to call and in what order — ` +
+        `starting with parsing your content to extract structured facts.`);
+      _burstAgents();
+    } catch { appendThinkLine('start', '◎', 'Orchestrator started'); }
   });
   es.addEventListener('tool_call', e => {
-    try { appendSSEEvent('call', JSON.parse(e.data)); } catch { appendSSEEvent('call', {raw:e.data}); }
+    try {
+      const d = JSON.parse(e.data);
+      _activateAgent(d.tool);
+      if (d.tool === '_switch_to_deepseek') {
+        appendThinkLine('err', '⚡',
+          `Gemini's quota has been reached, so I'm seamlessly handing off to the DeepSeek orchestrator. ` +
+          `Your analysis will continue from exactly where it left off — no work will be lost or repeated.`);
+        return;
+      }
+      const labels = {
+        parse_sources:    `Reading through your source${d.args?.sources?.length > 1 ? 's' : ''} line by line. ` +
+                          `I'm identifying disruption events, scoring each source's credibility, spotting ` +
+                          `any contradictions between them, and filtering out noise or duplicate information.`,
+        extract_insights: `Now I'm connecting the dots. I'll trace the root causes through to their downstream ` +
+                          `financial consequences, calculate the total dollar exposure in USD, assess how ` +
+                          `urgently action is needed, and build out the full causal chains.`,
+        plan_actions:     `With the impact picture clear, I'm now generating a prioritised set of concrete ` +
+                          `actions. Each one will be scored for confidence, estimated savings, feasibility, ` +
+                          `and any constraints or dependencies before ranking.`,
+        execute_action:   `Executing the top-ranked recommendation: ${d.args?.action_id || 'primary'}. ` +
+                          `I'm calling the relevant supply chain APIs, recording the before and after state, ` +
+                          `and calculating how much financial exposure this action removes.`,
+      };
+      appendThinkLine('call', '→', labels[d.tool] || `Calling ${d.tool}...`);
+    } catch { appendThinkLine('call', '→', 'tool call'); }
   });
   es.addEventListener('tool_result', e => {
     try {
       const d = JSON.parse(e.data);
-      appendSSEEvent(d.success === false ? 'result_err' : 'result_ok', d);
-    } catch { appendSSEEvent('result_ok', {raw:e.data}); }
+      const ok = d.success !== false;
+      _completeAgent(d.tool, ok);
+      if (!ok) { appendThinkLine('err', '✗', `${d.tool} failed`); return; }
+      const r = d.result || {};
+      let summary = '', sub = '';
+      if (d.tool === 'parse_sources') {
+        const ents = r.entities_count ?? (r.entities ?? []).length;
+        const con  = r.contradictions_count ?? (r.contradictions ?? []).length;
+        const noise = r.noise_filtered || 0;
+        summary = `Parsing complete. I found ${ents} disruption event${ents !== 1 ? 's' : ''} across your source${(r.sources_parsed||1) > 1 ? 's' : ''}` +
+          (con ? `, resolved ${con} conflicting data point${con !== 1 ? 's' : ''} by preferring the more recent and credible source` : '') +
+          (noise ? `, and filtered out ${noise} low-quality or duplicate source${noise !== 1 ? 's' : ''}` : '') + '.';
+        sub = r.time_horizon ? `Time horizon detected: ${r.time_horizon}` : undefined;
+      } else if (d.tool === 'extract_insights') {
+        const usd = r.total_exposure_usd ?? r.penalty_exposure_usd;
+        const urg = r.urgency || '?';
+        const chains = r.causal_chains_count ?? (r.causal_chains ?? []).length;
+        summary = `Insight extraction done. Total financial exposure is ` +
+          `$${usd != null ? Number(usd).toLocaleString() : 'unknown'} with urgency rated "${urg}". ` +
+          `I traced ${chains} cause-to-effect chain${chains !== 1 ? 's' : ''} showing exactly how the ` +
+          `disruption propagates through your supply network.`;
+      } else if (d.tool === 'plan_actions') {
+        const n   = r.actions_count ?? (r.ranked_actions ?? []).length;
+        const pid = r.primary_action_id || '?';
+        summary = `Action plan is ready. I've ranked ${n} possible action${n !== 1 ? 's' : ''} by ` +
+          `expected savings and feasibility. The primary recommendation is "${pid}" — this will be ` +
+          `executed next to start reducing your exposure immediately.`;
+      } else if (d.tool === 'execute_action') {
+        const savings = r.penalty_reduction_usd ?? r.savings_usd;
+        summary = savings != null
+          ? `Execution successful. By taking this action, $${Number(savings).toLocaleString()} in ` +
+            `penalties and losses have been avoided. The supply chain state has been updated to reflect ` +
+            `the new routing, inventory levels, and pricing.`
+          : `Action was executed. The supply chain state has been updated accordingly.`;
+      } else {
+        summary = `${d.tool} ✓`;
+      }
+      appendThinkLine('ok', '✓', summary, sub || undefined);
+    } catch { appendThinkLine('ok', '✓', 'tool result'); }
   });
   es.addEventListener('orchestrator_done', e => {
-    try { appendSSEEvent('done', JSON.parse(e.data)); } catch { appendSSEEvent('done', {raw:e.data}); }
+    try {
+      const d = JSON.parse(e.data);
+      const n = d.tool_calls_total ?? '?';
+      appendThinkLine('done', '◆',
+        `The orchestrator has finished after ${n} step${n !== 1 ? 's' : ''}. ` +
+        `All agents have completed their work — parsing, insight extraction, action planning, ` +
+        `and execution are all done. Packaging up the final results now.`);
+    } catch { appendThinkLine('done', '◆', 'All steps finished — wrapping up results...'); }
+    const ld = document.getElementById('live-dot');
+    if (ld) ld.className = 'live-dot done';
   });
   es.addEventListener('pipeline_done', e => {
-    try { appendSSEEvent('done', JSON.parse(e.data)); } catch { appendSSEEvent('done', {raw:e.data}); }
+    const sep = document.createElement('div'); sep.className = 'tl-sep';
+    document.getElementById('sse-inner').appendChild(sep);
+    appendThinkLine('done', '✦',
+      `Everything is ready. Your full analysis — parsed entities, causal insight chains, ` +
+      `financial exposure, the ranked action plan, and execution results — is now available ` +
+      `in the results panel on the right. Click any tab to explore the details.`);
     es.close(); activeES = null;
+    const ld = document.getElementById('live-dot');
+    if (ld) ld.className = 'live-dot done';
   });
   es.addEventListener('pipeline_error', e => {
-    try { appendSSEEvent('error', JSON.parse(e.data)); } catch { appendSSEEvent('error', {raw:e.data}); }
+    try {
+      const d = JSON.parse(e.data);
+      appendThinkLine('err', '✗', 'Pipeline error: ' + (d.error || 'unknown'));
+    } catch { appendThinkLine('err', '✗', 'Pipeline error'); }
     es.close(); activeES = null;
+    const ld = document.getElementById('live-dot');
+    if (ld) { ld.className = 'live-dot'; ld.style.background = 'var(--red)'; }
   });
-  es.onerror = () => {}; // swallow reconnect noise
+  es.onerror = () => {};
 
   return es;
 }
@@ -910,34 +1027,24 @@ async function runAnalyze() {
       body: JSON.stringify({ session_id: sessionId, sources })
     });
 
-    // ── Handle rate limit 429 specially ──────────────────────────────────────
-    if (res.status === 429) {
-      if (activeES) { activeES.close(); activeES = null; }
-      let detail;
-      try { detail = (await res.json()).detail; } catch { detail = {}; }
-      const resetUnix = detail.reset_at_unix || null;
-      const used = detail.requests_used || 6;
-      _saveRL(used, resetUnix);
-      updateRLUI(used, detail.limit || 6, resetUnix);
-      setStatus('error');
-      const msg = detail.message || 'Hourly rate limit reached. Please wait.';
-      clearResultsError(msg);
-      appendSSEEvent('error', { message: msg });
-      return;
-    }
-
     if (!res.ok) {
+      // ── Handle irrelevant input 422 ────────────────────────────────────────
+      if (res.status === 422) {
+        let detail;
+        try { detail = (await res.json()).detail; } catch { detail = {}; }
+        const msg = (detail && detail.message) || 'Content does not appear to be supply chain related.';
+        setStatus('error');
+        clearResultsError('⚠ ' + msg);
+        appendThinkLine('err', '✗', msg);
+        if (activeES) { activeES.close(); activeES = null; }
+        _resetAgents();
+        const ld = document.getElementById('live-dot');
+        if (ld) { ld.className = 'live-dot'; ld.style.background = 'var(--red)'; }
+        toast('Irrelevant input — ' + msg.slice(0, 60), 'error');
+        return;
+      }
       const errText = await res.text();
       throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
-    }
-
-    // ── Read rate-limit headers and update UI ─────────────────────────────────
-    const rlUsed = parseInt(res.headers.get('X-RateLimit-Used') || '0');
-    const rlLimit = parseInt(res.headers.get('X-RateLimit-Limit') || '6');
-    const rlReset = parseInt(res.headers.get('X-RateLimit-Reset') || '0');
-    if (rlUsed) {
-      _saveRL(rlUsed, rlReset || null);
-      updateRLUI(rlUsed, rlLimit, rlReset || null);
     }
 
     const data = await res.json();
@@ -948,7 +1055,7 @@ async function runAnalyze() {
     if (document.getElementById('state-box-body').style.display === 'block') loadCurrentState();
   } catch (e) {
     setStatus('error');
-    appendSSEEvent('error', { message: e.message });
+    appendThinkLine('err', '✗', e.message);
     clearResultsError(e.message);
     toast('Error: ' + e.message, 'error');
     if (activeES) { activeES.close(); activeES = null; }
@@ -1066,10 +1173,13 @@ function renderParsed(p) {
     html += '</div>';
   }
 
-  // Key metrics
-  if (p.key_metrics && Object.keys(p.key_metrics).length) {
+  // Key metrics — skip null/undefined values
+  const nonNullMetrics = p.key_metrics
+    ? Object.entries(p.key_metrics).filter(([,v]) => v !== null && v !== undefined)
+    : [];
+  if (nonNullMetrics.length) {
     html += '<div class="section-h">Key Metrics</div><dl class="kv-list">';
-    Object.entries(p.key_metrics).forEach(([k,v]) => {
+    nonNullMetrics.forEach(([k,v]) => {
       html += `<dt>${escHtml(String(k))}:</dt><dd>${escHtml(String(v))}</dd>`;
     });
     html += '</dl>';
@@ -1296,18 +1406,30 @@ function renderTrace(trace) {
     return;
   }
 
+  const agentIcons = { parser:'🔍', insight:'💡', planner:'📋', executor:'⚡', state_monitor:'📊', routing_api:'🛣️', pricing_api:'💲' };
   let html = '<div class="trace-list">';
-  trace.forEach(step => {
+  trace.forEach((step, i) => {
     const icon = step.status === 'error' ? '❌' : '✅';
-    const keys = step.output ? Object.keys(step.output).length : 0;
+    const agIcon = agentIcons[step.agent] || '🔧';
+    let detail = '';
+    if (step.status === 'error') {
+      detail = `<span style="color:var(--red)">${escHtml(step.error || 'error')}</span>`;
+    } else if (step.output) {
+      // Show a few meaningful keys instead of just a count
+      const skip = new Set(['session_id','next_step','entities','ranked_actions','chain_steps','api_steps','api_calls']);
+      const pairs = Object.entries(step.output)
+        .filter(([k,v]) => !skip.has(k) && v !== null && v !== undefined && typeof v !== 'object')
+        .slice(0, 4)
+        .map(([k,v]) => `<span style="color:var(--muted)">${escHtml(k)}:</span> <strong>${escHtml(String(v))}</strong>`)
+        .join(' &nbsp;·&nbsp; ');
+      detail = pairs || 'completed';
+    } else {
+      detail = 'completed';
+    }
     html += `<div class="trace-item">
-      <span class="trace-agent">${escHtml(step.agent||'')}</span>
+      <span class="trace-agent">${agIcon} ${escHtml(step.agent || '')}</span>
       <span class="trace-status">${icon}</span>
-      <div class="trace-info">
-        ${step.status === 'error'
-          ? `<span style="color:var(--red)">${escHtml(step.error||'error')}</span>`
-          : `${step.output ? keys + ' output fields' : 'completed'}`}
-      </div>
+      <div class="trace-info">${detail}</div>
     </div>`;
   });
   html += '</div>';

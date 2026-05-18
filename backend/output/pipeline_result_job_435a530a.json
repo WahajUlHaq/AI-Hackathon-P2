@@ -1,0 +1,136 @@
+{
+  "job_id": "job_435a530a",
+  "status": "completed",
+  "pipeline_duration_ms": 3553,
+  "ingestion": {
+    "content_blocks": [
+      {
+        "id": "cb_0",
+        "data": {
+          "label": "TechCorp Internal Memo",
+          "type": "PDF",
+          "content": "base64_or_filepath",
+          "received_at": "2026-05-13T10:00:00Z"
+        }
+      },
+      {
+        "id": "cb_1",
+        "data": {
+          "label": "Reuters \u2014 TechCorp Layoffs Report",
+          "type": "URL",
+          "content": "https://reuters.com/technology/techcorp-layoffs-2026",
+          "received_at": "2026-05-16T08:30:00Z"
+        }
+      },
+      {
+        "id": "cb_2",
+        "data": {
+          "label": "TechCorp Stock Price \u2014 5 Day History",
+          "type": "CSV",
+          "content": "Date,Close,Volume\n2026-05-12,162.00,8200000\n...",
+          "received_at": "2026-05-16T09:00:00Z"
+        }
+      },
+      {
+        "id": "cb_3",
+        "data": {
+          "label": "Analyst Ratings API",
+          "type": "JSON",
+          "content": "{\"analysts\":[{\"firm\":\"Goldman\",\"rating\":\"SELL\",\"target\":120}]}",
+          "received_at": "2026-05-16T09:30:00Z"
+        }
+      },
+      {
+        "id": "cb_4",
+        "data": {
+          "label": "LinkedIn/Twitter Sentiment Feed",
+          "type": "MockFeed",
+          "content": "847 posts in 6h. Top: job search (312), layoffs confirmed (289), stock sell (156). Sentiment: -0.78",
+          "received_at": "2026-05-16T10:00:00Z"
+        }
+      }
+    ],
+    "ingestion_summary": {
+      "total_sources": 5
+    }
+  },
+  "insights": {
+    "insights": [
+      {
+        "id": "ins_1",
+        "desc": "Inventory risk"
+      }
+    ]
+  },
+  "action_plan": {
+    "action_plan": [
+      {
+        "id": "act_1",
+        "action": "Validate"
+      },
+      {
+        "id": "act_2",
+        "action": "Order"
+      }
+    ],
+    "total_estimated_cost_pkr": 420000
+  },
+  "execution": {
+    "execution_log": [
+      {
+        "id": "act_1",
+        "status": "SUCCESS"
+      },
+      {
+        "id": "act_2",
+        "status": "FAILED",
+        "error": "TIMEOUT"
+      }
+    ],
+    "execution_summary": {
+      "succeeded": 1,
+      "failed": 1
+    }
+  },
+  "recovery": {
+    "recovery_actions": {
+      "recovered_actions": [
+        "act_2"
+      ]
+    },
+    "recovery_summary": {
+      "recovered": 1
+    }
+  },
+  "final_report": {
+    "before_after": [],
+    "cost_analysis": {
+      "total_cost_pkr": 465000,
+      "total_latency_ms": 18900
+    },
+    "projected_impact": {
+      "revenue_protected_pkr": "PKR 2,430,000",
+      "stockout_risk_reduction_percent": 68
+    },
+    "action_timeline": [
+      {
+        "step": 1,
+        "title": "Validate",
+        "status": "SUCCESS",
+        "duration_ms": 340,
+        "cost_pkr": 0
+      },
+      {
+        "step": 2,
+        "title": "Order",
+        "status": "RECOVERED",
+        "duration_ms": 15110,
+        "cost_pkr": 465000
+      }
+    ],
+    "antigravity_trace": {
+      "workplan": "validate -> notify -> order",
+      "final_outcome": "All actions completed. 68% risk reduction."
+    }
+  }
+}

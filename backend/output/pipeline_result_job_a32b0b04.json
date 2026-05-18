@@ -1,0 +1,743 @@
+{
+  "job_id": "job_a32b0b04",
+  "status": "completed",
+  "pipeline_duration_ms": 16216,
+  "ingestion": {
+    "content_blocks": [
+      {
+        "source_type": "MockFeed",
+        "source_label": "B",
+        "raw_text": "Social sentiment analysis (2026-05-16): 1 posts mentioning B in last 6 hours. Sentiment score: 0.00 (neutral).",
+        "timestamp": "2026-05-16T01:47:52.432Z",
+        "credibility_score": 0.55,
+        "domain": "social",
+        "is_stale": false,
+        "is_noise": false,
+        "noise_reason": null,
+        "word_count": 16,
+        "language": "en",
+        "extraction_method": "keyword_matching",
+        "metadata": {
+          "post_count": 1,
+          "volume_spike_pct": 0,
+          "sentiment_score": 0.0,
+          "top_topics": {},
+          "verified_employees": 0
+        },
+        "id": "cb_001",
+        "trust_score": 0.55,
+        "correctness_score": 0.55,
+        "correctness_label": "LIKELY_TRUE"
+      },
+      {
+        "source_type": "PDF",
+        "source_label": "A",
+        "raw_text": "Port of Karachi workers announced a 3-day strike starting May 15. All container terminals affected. Shipping companies report ~72hr cargo backlog.",
+        "timestamp": "2026-05-16T01:47:52.432Z",
+        "credibility_score": 0.5,
+        "domain": "news",
+        "is_stale": false,
+        "is_noise": false,
+        "noise_reason": null,
+        "word_count": 21,
+        "language": "en",
+        "extraction_method": "pdfplumber",
+        "metadata": {
+          "pages": 1,
+          "author": null,
+          "has_tables": false,
+          "detected_date": null,
+          "fallback_used": false,
+          "stale_reason": null
+        },
+        "id": "cb_002",
+        "trust_score": 0.5,
+        "correctness_score": 0.5,
+        "correctness_label": "LIKELY_TRUE"
+      },
+      {
+        "source_type": "CSV",
+        "source_label": "C",
+        "raw_text": "Data source: C. Period: 2 to 8.\n  dc | sku | on_hand | safety_stock | days_cover\n  KHI | SKU-ELEC-001 | 120 | 200 | 2\n  LHR | SKU-ELEC-001 | 380 | 200 | 8",
+        "timestamp": "2026-05-16T01:47:52.432Z",
+        "credibility_score": 0.65,
+        "domain": "finance",
+        "is_stale": false,
+        "is_noise": false,
+        "noise_reason": null,
+        "word_count": 34,
+        "language": "en",
+        "extraction_method": "pandas",
+        "metadata": {
+          "rows": 2,
+          "columns": [
+            "dc",
+            "sku",
+            "on_hand",
+            "safety_stock",
+            "days_cover"
+          ],
+          "time_range": "2 to 8",
+          "trend_detected": null
+        },
+        "id": "cb_003",
+        "trust_score": 0.65,
+        "correctness_score": 0.65,
+        "correctness_label": "LIKELY_TRUE"
+      }
+    ],
+    "ingestion_summary": {
+      "total_sources": 3,
+      "noise_filtered": 0,
+      "stale_flagged": 0,
+      "domains_detected": [
+        "finance",
+        "news",
+        "social"
+      ],
+      "source_types_used": [
+        "CSV",
+        "MockFeed",
+        "PDF"
+      ],
+      "parallel_execution_ms": 3
+    }
+  },
+  "insights": {
+    "insights": [
+      {
+        "id": "ins_001",
+        "title": "Karachi port strike disrupts electronics supply chain",
+        "description": "A 3-day strike at Port of Karachi (starting May 15) has caused a ~72hr cargo backlog. Inventory data shows SKU-ELEC-001 in Karachi has only 120 units on hand against a safety stock of 200, with only 2 days cover. Meanwhile, Lahore has 380 units (8 days cover). The strike will likely deplete Karachi stock and may require emergency redistribution from Lahore. The root cause is labor action at a critical port, combined with insufficient safety stock at the affected location.",
+        "signal_type": "risk",
+        "root_cause": "Labor strike at Port of Karachi causing cargo backlog, combined with low safety stock (120 vs 200) and only 2 days cover for a key SKU in Karachi.",
+        "forward_implication": "If no action is taken, Karachi will stock out of SKU-ELEC-001 within 2 days, leading to lost sales and potential customer dissatisfaction. The backlog may also affect other SKUs and increase demurrage costs.",
+        "time_horizon": "immediate",
+        "supporting_sources": [
+          "cb_002",
+          "cb_003"
+        ],
+        "urgency": "CRITICAL",
+        "confidence": 0.62
+      }
+    ],
+    "temporal_signals": [
+      {
+        "metric": "social sentiment for B",
+        "direction": "stable",
+        "change_description": "Neutral sentiment with low volume (1 post in 6 hours) as of May 16, 2026.",
+        "observed_in": [
+          "cb_001"
+        ]
+      }
+    ],
+    "overall_confidence": 0.62,
+    "sources_used": [
+      "cb_001",
+      "cb_002",
+      "cb_003"
+    ],
+    "sources_excluded": [],
+    "excluded_reason": "No sources excluded.",
+    "agent_reasoning": "The port strike in Karachi (cb_002) combined with low inventory and days cover for a key SKU in Karachi (cb_003) creates an immediate supply chain risk that requires urgent action to prevent stockout."
+  },
+  "action_plan": {
+    "action_plan": [
+      {
+        "action_id": "act_001",
+        "step": 1,
+        "title": "Alert Supply Chain Manager about Karachi Stockout Risk",
+        "type": "ALERT",
+        "description": "Send urgent notification to supply chain manager regarding imminent stockout of SKU-ELEC-001 in Karachi due to port strike. Include current stock levels and recommendation to initiate emergency redistribution from Lahore.",
+        "target_system": "notification_service",
+        "stakeholder": "supply_chain_manager",
+        "triggered_by_insight": "ins_001",
+        "constraints": {
+          "budget_limit_usd": 0,
+          "deadline": "2025-05-15T00:00:00Z",
+          "resource_required": "none",
+          "sensitivity": "high"
+        },
+        "depends_on": [],
+        "estimated_duration_minutes": 2,
+        "fallback": {
+          "title": "Email Supply Chain Manager about Karachi Stockout Risk",
+          "type": "ALERT",
+          "target_system": "email_service",
+          "description": "Send email alert to supply chain manager if notification service fails."
+        },
+        "constraint_status": "MODIFIED",
+        "priority_score": 9.9
+      },
+      {
+        "action_id": "act_002",
+        "step": 2,
+        "title": "Update Inventory Risk Flags for Karachi and Lahore",
+        "type": "UPDATE",
+        "description": "Set risk flag for SKU-ELEC-001 in Karachi to 'critical' and in Lahore to 'watch' to reflect potential redistribution need.",
+        "target_system": "risk_system",
+        "stakeholder": "inventory_team",
+        "triggered_by_insight": "ins_001",
+        "constraints": {
+          "budget_limit_usd": 0,
+          "deadline": "2025-05-15T00:00:00Z",
+          "resource_required": "none",
+          "sensitivity": "medium"
+        },
+        "depends_on": [
+          "act_001"
+        ],
+        "estimated_duration_minutes": 5,
+        "fallback": {
+          "title": "Manual Update of Inventory Risk Flags",
+          "type": "UPDATE",
+          "target_system": "record_store",
+          "description": "If risk system unavailable, update records manually in record store."
+        },
+        "constraint_status": "MODIFIED",
+        "priority_score": 9.9
+      },
+      {
+        "action_id": "act_003",
+        "step": 3,
+        "title": "Analyze Redistribution Options from Lahore to Karachi",
+        "type": "ANALYZE",
+        "description": "Trigger analytics engine to compute optimal quantity and logistics for emergency redistribution of SKU-ELEC-001 from Lahore to Karachi, considering transit time, cost, and impact on Lahore stock.",
+        "target_system": "analytics_engine",
+        "stakeholder": "logistics_team",
+        "triggered_by_insight": "ins_001",
+        "constraints": {
+          "budget_limit_usd": 500,
+          "deadline": "2025-05-15T06:00:00Z",
+          "resource_required": "analytics_compute",
+          "sensitivity": "medium"
+        },
+        "depends_on": [
+          "act_001"
+        ],
+        "estimated_duration_minutes": 30,
+        "fallback": {
+          "title": "Manual Analysis of Redistribution Options",
+          "type": "ANALYZE",
+          "target_system": "review_queue",
+          "description": "If analytics engine unavailable, queue manual analysis for logistics team."
+        },
+        "constraint_status": "MODIFIED",
+        "priority_score": 9.9
+      },
+      {
+        "action_id": "act_004",
+        "step": 4,
+        "title": "Publish Supply Chain Risk Brief to Dashboard",
+        "type": "PUBLISH",
+        "description": "Publish a brief summarizing the Karachi port strike impact, current inventory status, and recommended actions to the supply chain dashboard for visibility across teams.",
+        "target_system": "dashboard",
+        "stakeholder": "all_stakeholders",
+        "triggered_by_insight": "ins_001",
+        "constraints": {
+          "budget_limit_usd": 0,
+          "deadline": "2025-05-15T06:00:00Z",
+          "resource_required": "none",
+          "sensitivity": "medium"
+        },
+        "depends_on": [
+          "act_001",
+          "act_002"
+        ],
+        "estimated_duration_minutes": 10,
+        "fallback": {
+          "title": "Email Risk Brief to Stakeholders",
+          "type": "PUBLISH",
+          "target_system": "email_service",
+          "description": "If dashboard unavailable, email brief to all stakeholders."
+        },
+        "constraint_status": "MODIFIED",
+        "priority_score": 9.9
+      },
+      {
+        "action_id": "act_005",
+        "step": 5,
+        "title": "Monitor Port Strike Resolution and Inventory Levels",
+        "type": "MONITOR",
+        "description": "Schedule ongoing monitoring of port strike status and inventory levels for SKU-ELEC-001 in Karachi and Lahore, with alerts if stock drops below thresholds.",
+        "target_system": "monitoring_scheduler",
+        "stakeholder": "inventory_team",
+        "triggered_by_insight": "ins_001",
+        "constraints": {
+          "budget_limit_usd": 100,
+          "deadline": "2025-05-18T00:00:00Z",
+          "resource_required": "monitoring_slots",
+          "sensitivity": "low"
+        },
+        "depends_on": [
+          "act_001"
+        ],
+        "estimated_duration_minutes": 15,
+        "fallback": {
+          "title": "Manual Daily Check of Inventory Levels",
+          "type": "MONITOR",
+          "target_system": "alert_system",
+          "description": "If monitoring scheduler unavailable, set up manual daily checks with alert system."
+        },
+        "constraint_status": "REJECTED",
+        "priority_score": 9.9
+      }
+    ],
+    "plan_summary": "ALERT (notification_service) \u2192 UPDATE (risk_system) \u2192 ANALYZE (analytics_engine) \u2192 PUBLISH (dashboard) \u2192 MONITOR (monitoring_scheduler)",
+    "total_estimated_cost_usd": 600,
+    "estimated_resolution_hours": 4,
+    "actions_total": 5,
+    "actions_feasible": 0,
+    "actions_modified": 4,
+    "actions_rejected": 1,
+    "agent_reasoning": "1 CRITICAL/HIGH insight(s) detected (Karachi port strike disrupts electronics supply chain). Immediate stakeholder notification prioritised. Publishing verified summary prevents unverified information spreading. Record flagging and monitoring ensure ongoing risk visibility."
+  },
+  "execution": {
+    "execution_log": [
+      {
+        "action_id": "act_001",
+        "step": 1,
+        "title": "Alert Supply Chain Manager about Karachi Stockout Risk",
+        "type": "ALERT",
+        "executed_at": "2026-05-16T01:48:08Z",
+        "duration_ms": 250,
+        "status": "SUCCESS",
+        "error": null,
+        "requires_recovery": false,
+        "before_state": {
+          "system": "notification_service",
+          "notification_sent": false,
+          "last_notification": "N/A",
+          "pending_count": 0
+        },
+        "after_state": {
+          "system": "notification_service",
+          "notification_sent": true,
+          "last_notification": "2026-05-16T01:48:08Z",
+          "pending_count": 0,
+          "message_id": "msg_001",
+          "recipients": 8
+        },
+        "comparison": {
+          "fields_changed": [
+            "notification_sent",
+            "last_notification",
+            "message_id"
+          ],
+          "fields_unchanged": [
+            "pending_count"
+          ],
+          "change_summary": "Alert Supply Chain Manager about Karachi Stockout Risk: notification sent to 8 recipients.",
+          "impact_magnitude": "HIGH \u2014 stakeholders now informed, response can begin"
+        },
+        "simulation_output": {
+          "api_endpoint": "POST /notification-service/notifications",
+          "request_payload": {
+            "title": "Alert Supply Chain Manager about Karachi Stockout Risk",
+            "description": "Send urgent notification to supply chain manager regarding imminent stockout of SKU-ELEC-001 in Karachi due to port strike. Include current stock levels and recommendation to initiate emergency redist",
+            "stakeholder": "supply_chain_manager",
+            "sensitivity": "high",
+            "priority": "URGENT"
+          },
+          "response": {
+            "message_id": "msg_001",
+            "status": "delivered",
+            "recipients": 8
+          }
+        },
+        "side_effects": [
+          "Stakeholders now expect follow-up action",
+          "Notification logged in audit trail"
+        ]
+      },
+      {
+        "action_id": "act_002",
+        "step": 2,
+        "title": "Update Inventory Risk Flags for Karachi and Lahore",
+        "type": "UPDATE",
+        "executed_at": "2026-05-16T01:48:08Z",
+        "duration_ms": 340,
+        "status": "SUCCESS",
+        "error": null,
+        "requires_recovery": false,
+        "before_state": {
+          "system": "risk_system",
+          "record_updated": false,
+          "current_flag": "none",
+          "risk_level": "normal",
+          "last_updated": "stale"
+        },
+        "after_state": {
+          "system": "risk_system",
+          "record_updated": true,
+          "current_flag": "WATCH",
+          "risk_level": "HIGH",
+          "last_updated": "2026-05-16T01:48:08Z",
+          "records_changed": 1
+        },
+        "comparison": {
+          "fields_changed": [
+            "record_updated",
+            "current_flag",
+            "risk_level",
+            "last_updated"
+          ],
+          "fields_unchanged": [],
+          "change_summary": "Update Inventory Risk Flags for Karachi and Lahore: records updated, flag=WATCH, risk=HIGH.",
+          "impact_magnitude": "MEDIUM \u2014 automated risk systems will pick up new flag"
+        },
+        "simulation_output": {
+          "api_endpoint": "PATCH /risk-system/records",
+          "request_payload": {
+            "target": "Update Inventory Risk Flags for Karachi and Lahore",
+            "flag": "WATCH",
+            "risk": "HIGH"
+          },
+          "response": {
+            "records_updated": 1,
+            "new_flag": "WATCH",
+            "new_risk": "HIGH"
+          }
+        },
+        "side_effects": [
+          "Risk dashboard now shows elevated flag",
+          "Automated monitoring may trigger"
+        ]
+      },
+      {
+        "action_id": "act_003",
+        "step": 3,
+        "title": "Analyze Redistribution Options from Lahore to Karachi",
+        "type": "ANALYZE",
+        "executed_at": "2026-05-16T01:48:08Z",
+        "duration_ms": 420,
+        "status": "SUCCESS",
+        "error": null,
+        "requires_recovery": false,
+        "before_state": {
+          "system": "analytics_engine",
+          "analysis_active": false,
+          "active_jobs": 0,
+          "last_analysis": "N/A"
+        },
+        "after_state": {
+          "system": "analytics_engine",
+          "analysis_active": true,
+          "active_jobs": 1,
+          "last_analysis": "N/A",
+          "job_id": "job_003",
+          "estimated_completion": "T+60min"
+        },
+        "comparison": {
+          "fields_changed": [
+            "analysis_active",
+            "job_id",
+            "active_jobs"
+          ],
+          "fields_unchanged": [],
+          "change_summary": "Analyze Redistribution Options from Lahore to Karachi: analysis job job_003 queued, ~60 min.",
+          "impact_magnitude": "MEDIUM \u2014 deep analysis pipeline initiated"
+        },
+        "simulation_output": {
+          "api_endpoint": "POST /analytics-engine/jobs",
+          "request_payload": {
+            "job_type": "Analyze Redistribution Options from Lahore to Karachi",
+            "description": "Trigger analytics engine to compute optimal quantity and logistics for emergency redistribution of SKU-ELEC-001 from Lahore to Karachi, considering transit time, cost, and impact on Lahore stock."
+          },
+          "response": {
+            "job_id": "job_003",
+            "status": "queued",
+            "estimated_minutes": 60
+          }
+        },
+        "side_effects": [
+          "System compute resources allocated"
+        ]
+      },
+      {
+        "action_id": "act_004",
+        "step": 4,
+        "title": "Publish Supply Chain Risk Brief to Dashboard",
+        "type": "PUBLISH",
+        "executed_at": "2026-05-16T01:48:08Z",
+        "duration_ms": 5020,
+        "status": "FAILED",
+        "error": "API_TIMEOUT: dashboard did not respond within 5000ms",
+        "requires_recovery": true,
+        "before_state": {
+          "system": "dashboard",
+          "document_published": false,
+          "portal_status": "unknown",
+          "last_published": "N/A"
+        },
+        "after_state": {
+          "system": "dashboard",
+          "document_published": false,
+          "portal_status": "timeout",
+          "last_published": "N/A"
+        },
+        "comparison": {
+          "fields_changed": [
+            "portal_status"
+          ],
+          "fields_unchanged": [
+            "document_published",
+            "last_published"
+          ],
+          "change_summary": "Publish Supply Chain Risk Brief to Dashboard FAILED \u2014 portal timed out. Document NOT published.",
+          "impact_magnitude": "CRITICAL \u2014 downstream actions blocked, fallback required"
+        },
+        "simulation_output": {
+          "api_endpoint": "POST /dashboard/documents",
+          "request_payload": {
+            "title": "Publish Supply Chain Risk Brief to Dashboard",
+            "description": "Publish a brief summarizing the Karachi port strike impact, current inventory status, and recommended actions to the supply chain dashboard for visibility across teams.",
+            "sensitivity": "medium"
+          },
+          "response": "TIMEOUT after 5020ms \u2014 no response received"
+        },
+        "side_effects": [
+          "Downstream actions may be BLOCKED \u2014 depends on recovery outcome"
+        ]
+      },
+      {
+        "action_id": "act_005",
+        "step": 5,
+        "title": "Monitor Port Strike Resolution and Inventory Levels",
+        "type": "MONITOR",
+        "executed_at": "2026-05-16T01:48:08Z",
+        "duration_ms": 90,
+        "status": "SUCCESS",
+        "error": null,
+        "requires_recovery": false,
+        "before_state": {
+          "system": "monitoring_scheduler",
+          "monitoring_active": false,
+          "monitoring_job": null,
+          "interval": null
+        },
+        "after_state": {
+          "system": "monitoring_scheduler",
+          "monitoring_active": true,
+          "monitoring_job": "mon_005",
+          "interval": "1h",
+          "next_run": "2026-05-16T01:48:08Z"
+        },
+        "comparison": {
+          "fields_changed": [
+            "monitoring_active",
+            "monitoring_job",
+            "interval",
+            "next_run"
+          ],
+          "fields_unchanged": [],
+          "change_summary": "Monitor Port Strike Resolution and Inventory Levels: monitoring job mon_005 created, running hourly.",
+          "impact_magnitude": "LOW \u2014 background monitoring active"
+        },
+        "simulation_output": {
+          "api_endpoint": "POST /monitoring-scheduler/schedules",
+          "request_payload": {
+            "job_name": "Monitor Port Strike Resolution and Inventory Levels",
+            "interval": "1h"
+          },
+          "response": {
+            "job_id": "mon_005",
+            "status": "scheduled",
+            "interval": "1h",
+            "next_run": "2026-05-16T01:48:08Z"
+          }
+        },
+        "side_effects": [
+          "Background job registered in global scheduler"
+        ]
+      }
+    ],
+    "execution_summary": {
+      "total_actions": 5,
+      "succeeded": 4,
+      "failed": 1,
+      "skipped": 0,
+      "failed_action_ids": [
+        "act_004"
+      ],
+      "skipped_action_ids": [],
+      "execution_start": "2026-05-16T01:48:08Z",
+      "execution_end": "2026-05-16T01:48:08Z",
+      "total_duration_ms": 6120,
+      "failure_reason": "act_004 \u2014 dashboard timeout",
+      "recovery_needed": true
+    }
+  },
+  "recovery": {
+    "recovered_actions": [
+      {
+        "action_id": "act_004",
+        "original_error": "API_TIMEOUT: dashboard did not respond within 5000ms",
+        "fallback_used": {
+          "title": "Email Risk Brief to Stakeholders",
+          "type": "PUBLISH",
+          "target_system": "email_service",
+          "description": "If dashboard unavailable, email brief to all stakeholders."
+        },
+        "status": "RECOVERED",
+        "duration_ms": 380,
+        "recovery_output": {
+          "api_endpoint": "POST /email-service/documents",
+          "request_payload": {
+            "title": "Email Risk Brief to Stakeholders",
+            "description": "If dashboard unavailable, email brief to all stakeholders.",
+            "fallback_for": "act_004"
+          },
+          "response": {
+            "document_id": "fb_doc_004",
+            "status": "published",
+            "route": "email_service",
+            "recovered_at": "2026-05-16T01:48:08Z"
+          }
+        },
+        "side_effects_resolved": [
+          "Content delivered via fallback route (email_service) instead of primary.",
+          "Fallback logged as PUBLISH at 2026-05-16T01:48:08Z.",
+          "Dependent downstream actions eligible for unblocking."
+        ]
+      }
+    ],
+    "unblocked_actions": [],
+    "recovery_summary": "Successfully executed fallback for 1 failed actions."
+  },
+  "final_report": {
+    "before_after": [
+      {
+        "system": "Source Verification",
+        "before": "3 raw sources: unverified, potentially conflicting",
+        "after": "3 LIKELY_TRUE, 0 LIKELY_FALSE. 0 conflict(s) detected and resolved.",
+        "change_type": "POSITIVE"
+      },
+      {
+        "system": "Alert Supply Chain Manager about Karachi Stockout Risk",
+        "before": "No notification sent",
+        "after": "Notification sent. Last notified: 2026-05-16T01:48:08Z. message id: msg_001. recipients: 8",
+        "change_type": "POSITIVE"
+      },
+      {
+        "system": "Update Inventory Risk Flags for Karachi and Lahore",
+        "before": "Records unchanged. No active flag. Risk level: normal. last updated: stale",
+        "after": "Records updated. Flag set to WATCH. Risk level: HIGH. last updated: 2026-05-16T01:48:08Z. records changed: 1",
+        "change_type": "POSITIVE"
+      },
+      {
+        "system": "Analyze Redistribution Options from Lahore to Karachi",
+        "before": "Analysis not started. last analysis: N/A",
+        "after": "Analysis running. 1 active job(s). last analysis: N/A. job id: job_003. estimated completion: T+60min",
+        "change_type": "POSITIVE"
+      },
+      {
+        "system": "Publish Supply Chain Risk Brief to Dashboard",
+        "before": "Document not published. Portal unknown",
+        "after": "FAILED \u2192 RECOVERED via fallback. {'document_id': 'fb_doc_004', 'status': 'published', 'route': 'email_service', 'recovered_at': '2026-05-16T01:48:08Z'}",
+        "change_type": "PARTIAL"
+      },
+      {
+        "system": "Monitor Port Strike Resolution and Inventory Levels",
+        "before": "Monitoring not started. monitoring job: None",
+        "after": "Monitoring active. monitoring job: mon_005. Checks every 1h. next run: 2026-05-16T01:48:08Z",
+        "change_type": "POSITIVE"
+      }
+    ],
+    "action_timeline": [
+      {
+        "step": 1,
+        "action_id": "act_001",
+        "type": "ALERT",
+        "title": "Alert Supply Chain Manager about Karachi Stockout Risk",
+        "status": "SUCCESS",
+        "duration_ms": 250,
+        "note": "Alert Supply Chain Manager about Karachi Stockout Risk: notification sent to 8 recipients."
+      },
+      {
+        "step": 2,
+        "action_id": "act_002",
+        "type": "UPDATE",
+        "title": "Update Inventory Risk Flags for Karachi and Lahore",
+        "status": "SUCCESS",
+        "duration_ms": 340,
+        "note": "Update Inventory Risk Flags for Karachi and Lahore: records updated, flag=WATCH, risk=HIGH."
+      },
+      {
+        "step": 3,
+        "action_id": "act_003",
+        "type": "ANALYZE",
+        "title": "Analyze Redistribution Options from Lahore to Karachi",
+        "status": "SUCCESS",
+        "duration_ms": 420,
+        "note": "Analyze Redistribution Options from Lahore to Karachi: analysis job job_003 queued, ~60 min."
+      },
+      {
+        "step": 4,
+        "action_id": "act_004",
+        "type": "PUBLISH",
+        "title": "Publish Supply Chain Risk Brief to Dashboard",
+        "status": "RECOVERED",
+        "duration_ms": 5020,
+        "note": "Publish Supply Chain Risk Brief to Dashboard FAILED \u2014 portal timed out. Document NOT published."
+      },
+      {
+        "step": 5,
+        "action_id": "act_005",
+        "type": "MONITOR",
+        "title": "Monitor Port Strike Resolution and Inventory Levels",
+        "status": "SUCCESS",
+        "duration_ms": 90,
+        "note": "Monitor Port Strike Resolution and Inventory Levels: monitoring job mon_005 created, running hourly."
+      }
+    ],
+    "projected_impact": {
+      "sources_analyzed": 3,
+      "sources_verified_true": 3,
+      "sources_flagged_false": 0,
+      "noise_items_filtered": 0,
+      "conflicts_resolved": 0,
+      "insights_generated": 1,
+      "overall_confidence": 0.62,
+      "actions_completed": 5,
+      "actions_total": 0,
+      "actions_via_fallback": 1,
+      "people_notified": 8
+    },
+    "antigravity_trace": {
+      "workplan": "7-stage pipeline: parallel parse \u2192 flag/verify (LLM) \u2192 insight extraction (LLM) \u2192 action planning (LLM) \u2192 execution \u2192 recovery \u2192 reporting",
+      "task_plan": [
+        "Stage 1: Parse 3 sources in parallel \u2014 3ms",
+        "Stage 2: FlagAgent \u2014 0 conflict(s), 0 false-flagged (LLM conflict detection)",
+        "Stage 3: InsightAgent \u2014 1 insights extracted, confidence=0.62",
+        "Stage 4: PlanAgent \u2014 5-step action plan generated",
+        "Stage 5: ExecutorAgent \u2014 4 SUCCESS, 1 FAILED, 0 SKIPPED",
+        "Stage 6: RecoveryAgent \u2014 1 action(s) recovered, 0 unblocked",
+        "Stage 7: ReporterAgent \u2014 final report compiled from actual pipeline data"
+      ],
+      "reasoning_steps": [
+        "Stage 3: Insight 'Karachi port strike disrupts electronics supply chain' \u2014 urgency=CRITICAL, confidence=0.62",
+        "Stage 5: act_004 FAILED \u2014 API_TIMEOUT: dashboard did not respond within 5000ms",
+        "Stage 6: act_004 RECOVERED via PUBLISH"
+      ],
+      "tool_calls": [
+        "agent1e: B \u2192 16 words",
+        "agent1a: A \u2192 21 words",
+        "agent1c: C \u2192 34 words",
+        "agent2: trust scoring (Python) + conflict detection (LLM, temp=0.1)",
+        "agent3: insight extraction (LLM, temp=0.3) \u2192 1 insights",
+        "agent4: action planning (LLM, temp=0.1) \u2192 5 actions",
+        "act_001: POST /notification-service/notifications \u2192 SUCCESS (250ms)",
+        "act_002: PATCH /risk-system/records \u2192 SUCCESS (340ms)",
+        "act_003: POST /analytics-engine/jobs \u2192 SUCCESS (420ms)",
+        "act_004: POST /dashboard/documents \u2192 FAILED (5020ms)",
+        "act_005: POST /monitoring-scheduler/schedules \u2192 SUCCESS (90ms)",
+        "recovery act_004: fallback \u2192 RECOVERED (380ms)"
+      ],
+      "failures_and_recovery": [
+        "act_004 FAILED \u2192 RECOVERED via PUBLISH"
+      ],
+      "final_outcome": "5/0 actions completed (1 via fallback). 0 false source(s) excluded from all outputs. 1 insights extracted across 3 verified sources. System confidence: 62%."
+    }
+  }
+}

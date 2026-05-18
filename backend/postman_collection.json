@@ -1,0 +1,190 @@
+{
+  "info": {
+    "name": "Autonomous Agent API",
+    "description": "Postman collection to test the Content-to-Action pipeline API with real data scenarios.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/v1/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "health"]
+        }
+      }
+    },
+    {
+      "name": "2. Run Pipeline (Conflict Scenario)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sources\": [\n    {\n      \"label\": \"TechCorp Memo (Leaked)\",\n      \"type\": \"PDF\",\n      \"content\": \"We are announcing a 15% workforce reduction to optimize costs.\",\n      \"received_at\": \"2026-05-16T10:00:00Z\"\n    },\n    {\n      \"label\": \"Reuters News\",\n      \"type\": \"URL\",\n      \"content\": \"TechCorp confirms 25% layoffs amidst massive stock selloff and executive departures.\",\n      \"received_at\": \"2026-05-16T11:00:00Z\"\n    }\n  ],\n  \"constraints\": {\n    \"publish_deadline_hours\": 2\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/v1/run",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "run"]
+        }
+      }
+    },
+    {
+      "name": "3. Run Pipeline (No Conflict Scenario)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sources\": [\n    {\n      \"label\": \"Official Earnings Release\",\n      \"type\": \"JSON\",\n      \"content\": \"{\\\"revenue\\\": \\\"$2.4B\\\", \\\"growth\\\": \\\"14% YoY\\\", \\\"guidance\\\": \\\"Raised\\\"}\",\n      \"received_at\": \"2026-05-16T10:00:00Z\"\n    },\n    {\n      \"label\": \"Wall Street Journal\",\n      \"type\": \"URL\",\n      \"content\": \"TechCorp beats earnings expectations with 14% revenue growth, raises guidance.\",\n      \"received_at\": \"2026-05-16T10:05:00Z\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/v1/run",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "run"]
+        }
+      }
+    },
+    {
+      "name": "4. Run Pipeline (Wrong/Noise Data)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sources\": [\n    {\n      \"label\": \"Random Broken File\",\n      \"type\": \"PDF\",\n      \"content\": \"\",\n      \"received_at\": \"2026-05-16T10:00:00Z\"\n    },\n    {\n      \"label\": \"Irrelevant CSV\",\n      \"type\": \"CSV\",\n      \"content\": \"Dog Name,Breed\\nBuddy,Golden Retriever\\nMax,Pug\",\n      \"received_at\": \"2026-05-16T11:00:00Z\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/v1/run",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "run"]
+        }
+      }
+    },
+    {
+      "name": "5. Run Pipeline (Sync)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sources\": [\n    {\n      \"label\": \"Quick Social Check\",\n      \"type\": \"MockFeed\",\n      \"content\": \"Huge spike in positive sentiment about new product launch! 500+ posts.\",\n      \"received_at\": \"2026-05-16T10:00:00Z\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/v1/run/sync",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "run", "sync"]
+        }
+      }
+    },
+    {
+      "name": "6. Thinking Stream (SSE)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/event-stream"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/v1/stream/job_id_here",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "stream", "job_id_here"]
+        }
+      }
+    },
+    {
+      "name": "7. Check Pipeline Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/v1/status/job_id_here",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "status", "job_id_here"]
+        }
+      }
+    },
+    {
+      "name": "8. Get Pipeline Result",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/v1/result/job_id_here",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "result", "job_id_here"]
+        }
+      }
+    },
+    {
+      "name": "9. Get Trace",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/v1/trace/job_id_here",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "trace", "job_id_here"]
+        }
+      }
+    },
+    {
+      "name": "10. Get Report",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/v1/report/job_id_here",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "v1", "report", "job_id_here"]
+        }
+      }
+    }
+  ]
+}

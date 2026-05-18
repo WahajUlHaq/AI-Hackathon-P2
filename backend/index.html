@@ -1,0 +1,743 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Content-to-Action Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0c1120;
+            --bg-card: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.09);
+            --accent: #3b82f6;
+            --accent2: #8b5cf6;
+            --text: #f1f5f9;
+            --muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --recovered: #8b5cf6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            background-image:
+                radial-gradient(ellipse at 0% 0%, rgba(59,130,246,.12) 0, transparent 55%),
+                radial-gradient(ellipse at 100% 100%, rgba(139,92,246,.10) 0, transparent 55%);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(12,17,32,.85);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .logo { font-size: 1.25rem; font-weight: 700; background: linear-gradient(90deg,#60a5fa,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo span { font-weight: 400; opacity: .7; font-size: 1rem; }
+        #status-pill { padding: .3rem 1rem; border-radius: 999px; font-size: .8rem; font-weight: 600; letter-spacing: .5px; background: rgba(255,255,255,.08); border: 1px solid var(--border); transition: all .3s; }
+        .pill-running  { background: rgba(59,130,246,.2)!important; border-color: #3b82f6!important; color: #60a5fa!important; }
+        .pill-done     { background: rgba(16,185,129,.2)!important; border-color: #10b981!important; color: #34d399!important; }
+        .pill-error    { background: rgba(239,68,68,.2)!important;  border-color: #ef4444!important; color: #f87171!important; }
+        .layout { display: grid; grid-template-columns: 320px 1fr 420px; gap: 1.25rem; padding: 1.25rem; flex: 1; min-height: 0; overflow: hidden; transition: grid-template-columns .35s ease; }
+        .layout.stream-collapsed { grid-template-columns: 320px 0px 1fr; }
+        #stream-panel { overflow: hidden; transition: opacity .3s ease, min-width .35s ease; min-width: 0; }
+        .layout.stream-collapsed #stream-panel { opacity: 0; pointer-events: none; padding: 0; border: none; margin: 0; }
+        .stream-toggle { position: absolute; top: .4rem; right: .5rem; font-size: .72rem; padding: .2rem .6rem; border-radius: 5px; background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.3); color: #93c5fd; cursor: pointer; display: none; z-index: 10; }
+        .stream-toggle.visible { display: block; }
+        .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem; display: flex; flex-direction: column; overflow: hidden; }
+        .panel-title { font-size: .9rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .sources-scroll { flex: 1; overflow-y: auto; padding-right: .25rem; }
+        .sources-scroll::-webkit-scrollbar { width: 4px; }
+        .sources-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 2px; }
+        .source-card { background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 10px; padding: .9rem; margin-bottom: .75rem; }
+        .source-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; }
+        .source-type-badge { font-size: .7rem; font-weight: 600; padding: .15rem .5rem; border-radius: 4px; background: rgba(59,130,246,.2); color: #93c5fd; border: 1px solid rgba(59,130,246,.3); }
+        .btn-remove { background: transparent; border: 1px solid rgba(239,68,68,.4); color: #f87171; padding: .2rem .5rem; border-radius: 4px; cursor: pointer; font-size: .75rem; transition: background .2s; }
+        .btn-remove:hover { background: rgba(239,68,68,.15); }
+        input, select, textarea { width: 100%; background: rgba(0,0,0,.3); border: 1px solid var(--border); color: var(--text); padding: .45rem .65rem; border-radius: 6px; font-size: .85rem; font-family: 'Inter',sans-serif; margin-bottom: .5rem; outline: none; transition: border-color .2s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+        textarea { resize: vertical; min-height: 52px; }
+        select option { background: #1e293b; }
+        .btn-add { background: transparent; border: 1px dashed rgba(255,255,255,.2); color: var(--muted); padding: .5rem; border-radius: 8px; cursor: pointer; font-size: .85rem; width: 100%; margin-bottom: .75rem; transition: all .2s; }
+        .btn-add:hover { border-color: var(--accent); color: #93c5fd; }
+        .btn-run { width: 100%; padding: .9rem; font-size: 1rem; font-weight: 600; background: linear-gradient(90deg,#3b82f6,#8b5cf6); border: none; border-radius: 10px; color: white; cursor: pointer; margin-top: .75rem; box-shadow: 0 4px 20px rgba(59,130,246,.35); transition: all .2s; }
+        .btn-run:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-run:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+        .stage-bar { display: flex; gap: 4px; margin-bottom: .6rem; }
+        .stage-pip { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); transition: background .5s; }
+        .stage-pip.active { background: #3b82f6; }
+        .stage-pip.done { background: #10b981; }
+        .stage-labels { display: flex; justify-content: space-between; font-size: .63rem; color: var(--muted); margin-bottom: .75rem; text-transform: uppercase; letter-spacing: .5px; }
+        .stream-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: .75rem; scroll-behavior: smooth; }
+        .stream-area::-webkit-scrollbar { width: 4px; }
+        .stream-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 2px; }
+        .stream-msg { display: flex; gap: .6rem; animation: slideUp .25s ease-out; padding: .6rem 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+        .stream-msg:last-child { border-bottom: none; }
+        @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .stream-icon { font-size: 1rem; flex-shrink: 0; padding-top: 2px; }
+        .stream-bubble { flex: 1; }
+        .stream-bubble .agent-tag { font-size: .68rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .25rem; }
+        .stream-bubble .thought-text { margin: 0; font-size: .9rem; line-height: 1.7; color: rgba(241,245,249,.85); }
+        .cursor { display: inline-block; width: 7px; height: 14px; background: var(--accent); animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 3px; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        .stream-placeholder { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); gap: .75rem; font-size: .9rem; }
+        .tabs { display: flex; gap: .35rem; margin-bottom: .85rem; flex-wrap: wrap; }
+        .tab { padding: .35rem .8rem; border-radius: 6px; font-size: .8rem; font-weight: 500; cursor: pointer; color: var(--muted); border: 1px solid transparent; transition: all .2s; }
+        .tab:hover { color: var(--text); background: rgba(255,255,255,.05); }
+        .tab.active { color: var(--text); background: rgba(59,130,246,.18); border-color: rgba(59,130,246,.4); }
+        .result-area { flex: 1; overflow-y: auto; }
+        .result-area::-webkit-scrollbar { width: 4px; }
+        .result-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 2px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; margin-bottom: .9rem; }
+        .kpi-card { background: rgba(0,0,0,.2); border: 1px solid var(--border); border-radius: 10px; padding: .75rem; }
+        .kpi-value { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
+        .kpi-label { font-size: .73rem; color: var(--muted); margin-top: .25rem; text-transform: uppercase; letter-spacing: .5px; }
+        .kpi-blue{color:#60a5fa} .kpi-green{color:#34d399} .kpi-amber{color:#fbbf24} .kpi-purple{color:#a78bfa}
+        .confidence-bar-bg { height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+        .confidence-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#3b82f6,#10b981); transition: width .8s ease; }
+        .insight-card { background: rgba(0,0,0,.2); border: 1px solid var(--border); border-radius: 10px; padding: .85rem; margin-bottom: .65rem; }
+        .insight-header { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; margin-bottom: .5rem; }
+        .insight-title { font-size: .92rem; font-weight: 600; }
+        .urgency-badge { font-size: .68rem; font-weight: 700; padding: .2rem .55rem; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+        .urgency-CRITICAL{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.35)}
+        .urgency-HIGH{background:rgba(245,158,11,.2);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
+        .urgency-MEDIUM{background:rgba(59,130,246,.2);color:#60a5fa;border:1px solid rgba(59,130,246,.35)}
+        .urgency-LOW{background:rgba(100,116,139,.2);color:#94a3b8;border:1px solid rgba(100,116,139,.35)}
+        .insight-body { font-size: .83rem; color: rgba(241,245,249,.75); line-height: 1.55; margin-bottom: .5rem; }
+        .insight-meta { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .insight-meta-item { font-size: .72rem; color: var(--muted); }
+        .insight-meta-item span { color: var(--text); }
+        .action-step { display: flex; gap: .75rem; margin-bottom: .65rem; align-items: flex-start; }
+        .step-connector { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+        .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+        .step-line { width: 2px; height: 20px; margin: 3px 0; }
+        .dot-success{background:rgba(16,185,129,.2);border:2px solid #10b981;color:#34d399}
+        .dot-failed{background:rgba(239,68,68,.2);border:2px solid #ef4444;color:#f87171}
+        .dot-recovered{background:rgba(139,92,246,.2);border:2px solid #8b5cf6;color:#a78bfa}
+        .dot-skipped{background:rgba(100,116,139,.2);border:2px solid #475569;color:#64748b}
+        .line-success{background:#10b981} .line-failed{background:#ef4444} .line-recovered{background:#8b5cf6} .line-skipped{background:#475569}
+        .action-card { flex: 1; background: rgba(0,0,0,.2); border: 1px solid var(--border); border-radius: 10px; padding: .75rem; }
+        .action-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: .35rem; }
+        .action-title { font-size: .88rem; font-weight: 600; }
+        .action-status-pill { font-size: .68rem; font-weight: 700; padding: .18rem .55rem; border-radius: 4px; }
+        .pill-SUCCESS{background:rgba(16,185,129,.2);color:#34d399;border:1px solid rgba(16,185,129,.35)}
+        .pill-FAILED{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.35)}
+        .pill-RECOVERED{background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.35)}
+        .pill-SKIPPED{background:rgba(100,116,139,.2);color:#94a3b8;border:1px solid rgba(100,116,139,.35)}
+        .pill-UNBLOCKED{background:rgba(16,185,129,.2);color:#34d399;border:1px solid rgba(16,185,129,.35)}
+        .action-meta { font-size: .78rem; color: var(--muted); display: flex; gap: .75rem; flex-wrap: wrap; }
+        .action-note { font-size: .8rem; color: rgba(241,245,249,.65); margin-top: .35rem; line-height: 1.45; }
+        /* ── Result tab ── */
+        .result-summary { display: flex; gap: .6rem; margin-bottom: 1rem; }
+        .result-metric { flex: 1; background: rgba(0,0,0,.2); border: 1px solid var(--border); border-radius: 10px; padding: .6rem .7rem; text-align: center; }
+        .result-metric-num { display: block; font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+        .result-metric-label { display: block; font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: .15rem; }
+        .result-num-pos { color: #34d399; } .result-num-part { color: #fbbf24; } .result-num-neg { color: #f87171; }
+        .result-table-wrap { overflow-x: auto; }
+        .result-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+        .result-table th { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: .4rem .65rem; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .result-table td { padding: .6rem .65rem; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,.04); line-height: 1.5; }
+        .result-table tr:last-child td { border-bottom: none; }
+        .result-table tr:hover td { background: rgba(255,255,255,.02); }
+        .rt-step { width: 1.65rem; height: 1.65rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+        .rt-step-pos  { background: rgba(16,185,129,.2);  color: #34d399; border: 1px solid rgba(16,185,129,.35); }
+        .rt-step-part { background: rgba(245,158,11,.2);  color: #fbbf24; border: 1px solid rgba(245,158,11,.35); }
+        .rt-step-neg  { background: rgba(239,68,68,.2);   color: #f87171; border: 1px solid rgba(239,68,68,.35); }
+        .rt-before { color: rgba(241,245,249,.5); max-width: 220px; }
+        .rt-after-POSITIVE { color: #34d399; max-width: 220px; }
+        .rt-after-PARTIAL  { color: #fbbf24; max-width: 220px; }
+        .rt-after-NEGATIVE { color: #f87171; max-width: 220px; }
+        .rt-badge { font-size: .65rem; font-weight: 700; padding: .13rem .45rem; border-radius: 4px; white-space: nowrap; }
+        .rt-badge-POSITIVE { background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3) }
+        .rt-badge-PARTIAL  { background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3) }
+        .rt-badge-NEGATIVE { background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3) }
+        /* ── Plan constraint reason ── */
+        .plan-cs-reason { font-size: .78rem; color: rgba(241,245,249,.6); margin: .35rem 0 .4rem; padding: .3rem .55rem; border-radius: 6px; border-left: 2px solid; line-height: 1.45; }
+        .plan-cs-reason-FEASIBLE  { border-color:#10b981; background:rgba(16,185,129,.05); }
+        .plan-cs-reason-MODIFIED  { border-color:#f59e0b; background:rgba(245,158,11,.05); }
+        .plan-cs-reason-REJECTED  { border-color:#ef4444; background:rgba(239,68,68,.05); }
+        @keyframes wordReveal { from{opacity:0;filter:blur(5px);transform:translateY(3px)} to{opacity:1;filter:blur(0);transform:translateY(0)} }
+        .word-reveal { display: inline-block; opacity: 0; animation: wordReveal 0.32s ease-out forwards; }
+        .plan-step { display: flex; gap: .75rem; margin-bottom: .75rem; }
+        .plan-step-num { flex-shrink: 0; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: rgba(59,130,246,.2); border: 1px solid rgba(59,130,246,.4); color: #93c5fd; font-size: .78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: .1rem; }
+        .plan-step-body { flex: 1; background: rgba(0,0,0,.18); border: 1px solid var(--border); border-radius: 10px; padding: .7rem .85rem; }
+        .plan-step-header { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .35rem; }
+        .plan-step-title { font-size: .88rem; font-weight: 600; flex: 1; }
+        .plan-type-badge { font-size: .65rem; font-weight: 700; padding: .15rem .5rem; border-radius: 4px; text-transform: uppercase; letter-spacing: .4px; }
+        .plan-type-ALERT   { background:rgba(239,68,68,.18);color:#f87171;border:1px solid rgba(239,68,68,.3) }
+        .plan-type-PUBLISH { background:rgba(59,130,246,.18);color:#93c5fd;border:1px solid rgba(59,130,246,.3) }
+        .plan-type-UPDATE  { background:rgba(245,158,11,.18);color:#fbbf24;border:1px solid rgba(245,158,11,.3) }
+        .plan-type-ANALYZE { background:rgba(139,92,246,.18);color:#a78bfa;border:1px solid rgba(139,92,246,.3) }
+        .plan-type-MONITOR { background:rgba(20,184,166,.18);color:#2dd4bf;border:1px solid rgba(20,184,166,.3) }
+        .plan-cs-FEASIBLE  { font-size:.65rem;font-weight:700;padding:.12rem .45rem;border-radius:4px;background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.25) }
+        .plan-cs-MODIFIED  { font-size:.65rem;font-weight:700;padding:.12rem .45rem;border-radius:4px;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.25) }
+        .plan-cs-REJECTED  { font-size:.65rem;font-weight:700;padding:.12rem .45rem;border-radius:4px;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.25) }
+        .plan-desc { font-size: .83rem; color: rgba(241,245,249,.75); line-height: 1.5; margin-bottom: .4rem; }
+        .plan-meta { display: flex; gap: .65rem; flex-wrap: wrap; font-size: .75rem; color: var(--muted); }
+        .plan-meta span { display: flex; align-items: center; gap: .25rem; }
+        .plan-fallback { margin-top: .4rem; font-size: .78rem; color: var(--muted); padding: .35rem .55rem; background: rgba(255,255,255,.04); border-radius: 6px; border-left: 2px solid rgba(255,255,255,.12); }
+        .json-view { font-family: 'JetBrains Mono',monospace; font-size: .78rem; white-space: pre-wrap; word-break: break-word; color: #e2e8f0; line-height: 1.6; }
+        .jk{color:#93c5fd} .js{color:#86efac} .jn{color:#fca5a5} .jb{color:#fdba74}
+        .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: .75rem; opacity: .4; }
+        .empty-state p { font-size: .88rem; }
+        .section-label { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: .75rem 0 .4rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">Autonomous AI Pipeline <span>· Content-to-Action</span></div>
+    <div style="display:flex;gap:1rem;align-items:center;">
+        <div id="status-pill">IDLE</div>
+        <a href="http://localhost:8000/docs" target="_blank" style="color:var(--muted);text-decoration:none;font-size:.82rem;">Swagger ↗</a>
+    </div>
+</header>
+
+<div class="layout">
+
+    <!-- LEFT: Data Sources -->
+    <div class="panel">
+        <div class="panel-title">
+            Data Sources
+            <button class="btn-add" style="width:auto;margin:0;padding:.25rem .65rem;font-size:.8rem;" onclick="addSource()">+ Add</button>
+        </div>
+        <div class="sources-scroll" id="sources-container"></div>
+        <button id="btn-run" class="btn-run" onclick="runPipeline()">▶ Launch Analysis Pipeline</button>
+    </div>
+
+    <!-- CENTER: Agentic Stream -->
+    <div class="panel" id="stream-panel">
+        <div class="panel-title">
+            Agentic Reasoning Stream
+            <span id="thinking-badge" style="font-size:.75rem;font-weight:500;color:var(--accent);opacity:0;transition:opacity .3s;">● Thinking...</span>
+        </div>
+        <div class="stage-bar">
+            <div class="stage-pip" id="pip-1"></div>
+            <div class="stage-pip" id="pip-2"></div>
+            <div class="stage-pip" id="pip-3"></div>
+            <div class="stage-pip" id="pip-4"></div>
+            <div class="stage-pip" id="pip-5"></div>
+            <div class="stage-pip" id="pip-6"></div>
+            <div class="stage-pip" id="pip-7"></div>
+        </div>
+        <div class="stage-labels">
+            <span>Parse</span><span>Flag</span><span>Insight</span><span>Plan</span><span>Execute</span><span>Recover</span><span>Report</span>
+        </div>
+        <div class="stream-area" id="stream-area">
+            <div class="stream-placeholder" id="stream-placeholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                </svg>
+                <p>Configure sources and click<br><strong>Launch</strong> to begin the pipeline.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Intelligence Results -->
+    <div class="panel" style="position:relative;">
+        <button class="stream-toggle" id="stream-toggle" onclick="toggleStream()">☰ Stream</button>
+        <div class="panel-title">Pipeline Intelligence</div>
+        <div class="tabs">
+            <div class="tab active" data-tab="overview">Overview</div>
+            <div class="tab" data-tab="insights">Insights</div>
+            <div class="tab" data-tab="plan">Plan</div>
+            <div class="tab" data-tab="actions">Actions</div>
+            <div class="tab" data-tab="beforeafter">Result</div>
+            <div class="tab" data-tab="raw">Raw JSON</div>
+        </div>
+        <div class="result-area">
+            <div class="tab-pane active" id="pane-overview">
+                <div class="empty-state"><div class="icon">📊</div><p>KPI summary will appear here once the pipeline completes.</p></div>
+            </div>
+            <div class="tab-pane" id="pane-insights">
+                <div class="empty-state"><div class="icon">💡</div><p>Extracted insights will appear here.</p></div>
+            </div>
+            <div class="tab-pane" id="pane-actions">
+                <div class="empty-state"><div class="icon">⚡</div><p>Action execution chain will appear here.</p></div>
+            </div>
+            <div class="tab-pane" id="pane-plan">
+                <div class="empty-state"><div class="icon">🗂️</div><p>Action plan will appear here once the pipeline completes.</p></div>
+            </div>
+            <div class="tab-pane" id="pane-beforeafter">
+                <div class="empty-state"><div class="icon">�</div><p>Pipeline results will appear here once the run completes.</p></div>
+            </div>
+            <div class="tab-pane" id="pane-raw">
+                <div class="empty-state"><div class="icon">{ }</div><p>Raw pipeline output will appear here.</p></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const API_BASE = "http://localhost:8000/api/v1";
+let eventSource = null, currentJobId = null, lastStage = 0;
+
+let sources = [
+    { id: 1, label: "UN Food Agency — Global Grain Supply Report (PDF)", type: "PDF", content: "Global wheat reserves are projected to fall 22% by Q1 2026 due to harvest failures in Ukraine and Argentina. Export disruptions from Black Sea ports have reached 40-year highs. Emergency reserves in importing nations cover only 6 weeks of consumption." },
+    { id: 2, label: "Reuters — Ukraine Harvest Disruption", type: "URL", content: "https://reuters.com/world/ukraine-grain-harvest-disruption-2025" },
+    { id: 3, label: "Chicago Board of Trade — Wheat Futures CSV", type: "CSV", content: "Date,Close,Volume\n2025-10-28,512.00,42000\n2025-10-29,525.50,55000\n2025-10-30,543.75,61000\n2025-10-31,561.00,70000\n2025-11-01,580.25,83000" },
+    { id: 4, label: "USDA Export Inspection API", type: "JSON", content: '{"weekly_inspections":[{"week":"2025-W43","wheat_inspected_MT":850000,"vs_prior_week_pct":-34.2},{"week":"2025-W44","wheat_inspected_MT":610000,"vs_prior_week_pct":-28.2}]}' },
+    { id: 5, label: "Commodity Trader Sentiment Feed", type: "MockFeed", content: "1240 posts in 12h. Top: wheat shortage (482), food security alert (376), buy grain ETFs (264). Sentiment: -0.64" }
+];
+
+// ── TABS ────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('pane-' + tab.dataset.tab).classList.add('active');
+    });
+});
+
+// ── SOURCES ─────────────────────────────────────────────────────────────────
+function escHtml(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderSources() {
+    const c = document.getElementById('sources-container');
+    c.innerHTML = '';
+    sources.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'source-card';
+        div.innerHTML = `
+            <div class="source-card-header">
+                <span class="source-type-badge">${s.type}</span>
+                <button class="btn-remove" onclick="removeSource(${s.id})">✕ Remove</button>
+            </div>
+            <input type="text" placeholder="Label" value="${escHtml(s.label)}" onchange="updateSource(${s.id},'label',this.value)">
+            <select onchange="updateSource(${s.id},'type',this.value)">
+                ${['PDF','URL','CSV','JSON','MockFeed'].map(t=>`<option value="${t}"${s.type===t?' selected':''}>${t}</option>`).join('')}
+            </select>
+            <textarea placeholder="Content or URL" onchange="updateSource(${s.id},'content',this.value)">${escHtml(s.content)}</textarea>
+        `;
+        c.appendChild(div);
+    });
+}
+
+function addSource() { sources.push({id:Date.now(),label:'New Source',type:'PDF',content:''}); renderSources(); }
+function removeSource(id) { sources = sources.filter(s=>s.id!==id); renderSources(); }
+function updateSource(id, f, v) { const s=sources.find(s=>s.id===id); if(s) s[f]=v; }
+
+// ── STAGE PROGRESS ───────────────────────────────────────────────────────────
+const stageKeyMap = {'stage1':1,'parse':1,'ingestion':1,'stage2':2,'flag':2,'stage3':3,'insight':3,'stage4':4,'plan':4,'stage5':5,'execut':5,'stage6':6,'recover':6,'stage7':7,'report':7};
+
+function detectStage(agent) {
+    const k = (agent||'').toLowerCase();
+    for (const [kw, v] of Object.entries(stageKeyMap)) { if (k.includes(kw)) return v; }
+    return null;
+}
+
+function updateStagePips(current) {
+    for (let i=1;i<=7;i++) {
+        const p = document.getElementById('pip-'+i);
+        if (!p) continue;
+        p.classList.remove('active','done');
+        if (i < current) p.classList.add('done');
+        else if (i === current) p.classList.add('active');
+    }
+}
+
+// ── STREAM ───────────────────────────────────────────────────────────────────
+function appendMsg(emoji, agent, text) {
+    const area = document.getElementById('stream-area');
+    document.getElementById('stream-placeholder')?.remove();
+    document.querySelectorAll('.cursor').forEach(c => c.remove());
+    const div = document.createElement('div');
+    div.className = 'stream-msg';
+    // Word-by-word reveal: each word fades in with blur, staggered by 60ms
+    const words = (text || '').split(/\s+/).filter(Boolean);
+    const wordsHtml = words.map((w, i) =>
+        `<span class="word-reveal" style="animation-delay:${(i * 0.06).toFixed(2)}s">${escHtml(w)}</span>`
+    ).join(' ');
+    div.innerHTML = `
+        <div class="stream-icon">${emoji || '🤖'}</div>
+        <div class="stream-bubble">
+            <div class="agent-tag">${escHtml(agent || 'Agent')}</div>
+            <p class="thought-text">${wordsHtml}</span></p>
+        </div>`;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+    const stg = detectStage(agent);
+    if (stg && stg > lastStage) { lastStage = stg; updateStagePips(stg); }
+}
+
+// ── STREAM TOGGLE ────────────────────────────────────────────────────────────
+function toggleStream() {
+    const layout = document.querySelector('.layout');
+    layout.classList.toggle('stream-collapsed');
+}
+
+// ── PIPELINE RUN ─────────────────────────────────────────────────────────────
+async function runPipeline() {
+    if (!sources.length) return alert('Add at least one source.');
+    const btn = document.getElementById('btn-run');
+    btn.disabled = true; btn.textContent = '⏳ Initializing…';
+    lastStage = 0; updateStagePips(0);
+    // Restore stream panel for new run
+    document.querySelector('.layout').classList.remove('stream-collapsed');
+    document.getElementById('stream-toggle').classList.remove('visible');
+    document.getElementById('stream-area').innerHTML = '<div class="stream-placeholder" id="stream-placeholder"><p style="color:var(--muted)">Connecting to pipeline…</p></div>';
+    ['overview','insights','actions','plan','beforeafter','raw'].forEach(id => {
+        document.getElementById('pane-'+id).innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Processing…</p></div>';
+    });
+    setPill('RUNNING','pill-running');
+    document.getElementById('thinking-badge').style.opacity = 1;
+
+    const payload = {
+        sources: sources.map(s=>({label:s.label,type:s.type,content:s.content,received_at:new Date().toISOString()})),
+        constraints: { publish_deadline_hours: 6 }
+    };
+    try {
+        const res = await fetch(`${API_BASE}/run`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        if (!res.ok) throw new Error(await res.text());
+        const { job_id } = await res.json();
+        currentJobId = job_id;
+        connectStream(job_id);
+    } catch(err) { alert('Error: '+err); resetBtn(); }
+}
+
+function setPill(label, cls) {
+    const p = document.getElementById('status-pill');
+    p.textContent = label; p.className = cls;
+}
+
+function connectStream(jobId) {
+    if (eventSource) eventSource.close();
+    let finished = false;
+
+    eventSource = new EventSource(`${API_BASE}/stream/${jobId}`);
+
+    // Regular thought messages
+    eventSource.onmessage = e => {
+        try { const d = JSON.parse(e.data); appendMsg(d.emoji, d.agent, d.thought); } catch(_) {}
+    };
+
+    // Server sends "event: done" when pipeline completes successfully
+    eventSource.addEventListener('done', () => {
+        if (finished) return;
+        finished = true;
+        document.querySelectorAll('.cursor').forEach(c => c.remove());
+        appendMsg('✅', 'System', 'Pipeline completed successfully.');
+        eventSource.close();
+        updateStagePips(8);
+        fetchAndRenderResults(jobId);
+        setPill('COMPLETED', 'pill-done');
+        document.getElementById('thinking-badge').style.opacity = 0;
+        resetBtn();        // Collapse stream panel and expand results
+        document.querySelector('.layout').classList.add('stream-collapsed');
+        document.getElementById('stream-toggle').classList.add('visible');    });
+
+    // Server sends "event: error\ndata:{...}" for real pipeline faults
+    // Native close/reconnect events have NO e.data and are handled separately below
+    eventSource.addEventListener('error', e => {
+        if (finished) return;
+        if (!e.data) {
+            // Connection dropped (no payload) — stop auto-reconnects immediately,
+            // then poll the status endpoint to learn the real outcome
+            finished = true;
+            eventSource.close();
+            pollJobStatus(jobId);
+            return;
+        }
+        // Real server-sent error with payload
+        finished = true;
+        eventSource.close();
+        try {
+            const d = JSON.parse(e.data);
+            appendMsg('❌', 'System Error', d.error || 'Fatal pipeline error.');
+        } catch(_) {
+            appendMsg('❌', 'System Error', 'Unexpected pipeline error.');
+        }
+        setPill('FAILED', 'pill-error');
+        document.getElementById('thinking-badge').style.opacity = 0;
+        resetBtn();
+    });
+}
+
+// Poll /status/{jobId} until the pipeline resolves (used when SSE drops without a done/error event)
+async function pollJobStatus(jobId) {
+    appendMsg('⏳', 'System', 'Stream disconnected — checking pipeline status…');
+    let attempts = 0;
+
+    const check = async () => {
+        if (attempts++ > 40) {  // ~80 seconds max
+            appendMsg('❌', 'System', 'Timed out waiting for pipeline result. The server may still be running — check /api/v1/status/' + jobId);
+            setPill('FAILED', 'pill-error');
+            document.getElementById('thinking-badge').style.opacity = 0;
+            resetBtn();
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/status/${jobId}`);
+            if (!res.ok) {
+                // 404 = server restarted and lost the job; stop polling
+                appendMsg('❌', 'System', 'Job not found — server may have restarted. Please re-run the pipeline.');
+                setPill('FAILED', 'pill-error');
+                document.getElementById('thinking-badge').style.opacity = 0;
+                resetBtn();
+                return;
+            }
+            const s = await res.json();
+            if (s.status === 'completed') {
+                document.querySelectorAll('.cursor').forEach(c => c.remove());
+                appendMsg('✅', 'System', 'Pipeline completed (recovered from dropped stream).');
+                updateStagePips(8);
+                fetchAndRenderResults(jobId);
+                setPill('COMPLETED', 'pill-done');
+                document.getElementById('thinking-badge').style.opacity = 0;
+                resetBtn();
+            } else if (s.status === 'failed') {
+                appendMsg('❌', 'System Error', s.error || 'Pipeline failed on the server.');
+                setPill('FAILED', 'pill-error');
+                document.getElementById('thinking-badge').style.opacity = 0;
+                resetBtn();
+            } else {
+                setTimeout(check, 2000);  // still running — keep polling
+            }
+        } catch(_) {
+            setTimeout(check, 3000);  // network error — retry
+        }
+    };
+    setTimeout(check, 1000);
+}
+
+function resetBtn() { const btn=document.getElementById('btn-run'); btn.disabled=false; btn.textContent='▶ Launch Analysis Pipeline'; }
+
+// ── RESULTS ──────────────────────────────────────────────────────────────────
+async function fetchAndRenderResults(jobId) {
+    try {
+        const res = await fetch(`${API_BASE}/result/${jobId}`);
+        if (!res.ok) { console.error('Result not ready:', res.status); return; }
+        const data = await res.json();
+        // Render each tab independently — one crash won't blank the others
+        try { renderOverview(data); }   catch(e) { console.error('renderOverview:', e); }
+        try { renderInsights(data); }   catch(e) { console.error('renderInsights:', e); }
+        try { renderActions(data); }    catch(e) { console.error('renderActions:', e); }
+        try { renderPlan(data); }        catch(e) { console.error('renderPlan:', e); }
+        try { renderBeforeAfter(data); } catch(e) { console.error('renderBeforeAfter:', e); }
+        try { renderRaw(data); }        catch(e) { console.error('renderRaw:', e); }
+    } catch(e) { console.error('Fetch failed:', e); }
+}
+
+function renderOverview(data) {
+    const report = data.final_report || {};
+    const impact = report.projected_impact || {};
+    const stage3 = data.insights || {};
+    const src_total  = impact.sources_analyzed ?? (data.ingestion?.ingestion_summary?.total_sources ?? '—');
+    const src_true   = impact.sources_verified_true ?? '—';
+    const n_insights = impact.insights_generated ?? (stage3.insights?.length ?? '—');
+    const conf       = impact.overall_confidence ?? stage3.overall_confidence;
+    const conf_pct   = conf != null ? Math.round(conf*100) : null;
+    const acts_done  = impact.actions_completed ?? '—';
+    const acts_total = impact.actions_total ?? '—';
+    const notified   = impact.people_notified ?? '—';
+    const conflicts  = impact.conflicts_resolved ?? '—';
+    const false_cnt  = impact.sources_flagged_false ?? '—';
+    const timeline   = report.action_timeline || [];
+    const recovered  = timeline.filter(a=>a.status==='RECOVERED').length;
+
+    document.getElementById('pane-overview').innerHTML = `
+        <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-value kpi-blue">${src_total}</div><div class="kpi-label">Sources Ingested</div></div>
+            <div class="kpi-card"><div class="kpi-value kpi-green">${src_true}</div><div class="kpi-label">Verified True</div></div>
+            <div class="kpi-card"><div class="kpi-value kpi-amber">${n_insights}</div><div class="kpi-label">Insights Extracted</div></div>
+            <div class="kpi-card"><div class="kpi-value kpi-purple">${acts_done}/${acts_total}</div><div class="kpi-label">Actions Completed</div></div>
+        </div>
+        ${conf_pct!=null?`
+        <div class="kpi-card" style="margin-bottom:.65rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+                <div class="kpi-label" style="margin:0;">Overall Confidence</div>
+                <div style="font-weight:700;font-size:1.1rem;color:${conf_pct>=80?'#34d399':conf_pct>=60?'#fbbf24':'#f87171'}">${conf_pct}%</div>
+            </div>
+            <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width:${conf_pct}%"></div></div>
+        </div>`:''}
+        <div class="section-label">Pipeline Summary</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.82rem;">
+            ${[['CONFLICTS RESOLVED',conflicts],['RECOVERED VIA FALLBACK',recovered],['STAKEHOLDERS NOTIFIED',notified],['FALSE SOURCES BLOCKED',false_cnt]].map(([l,v])=>`
+            <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;padding:.6rem;">
+                <div style="color:var(--muted);font-size:.7rem;margin-bottom:.2rem;">${l}</div>
+                <div style="font-weight:600;">${v}</div>
+            </div>`).join('')}
+        </div>
+        ${report.antigravity_trace?.final_outcome?`
+        <div class="section-label" style="margin-top:.9rem;">Final Outcome</div>
+        <div style="font-size:.83rem;color:rgba(241,245,249,.8);line-height:1.6;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:.75rem;">${escHtml(report.antigravity_trace.final_outcome)}</div>`:''}
+    `;
+}
+
+function renderInsights(data) {
+    const stage3 = data.insights || {};
+    const insights = stage3.insights || [];
+    if (!insights.length) { document.getElementById('pane-insights').innerHTML='<div class="empty-state"><div class="icon">💡</div><p>No insights in result.</p></div>'; return; }
+    const html = insights.map(ins=>`
+        <div class="insight-card">
+            <div class="insight-header">
+                <div class="insight-title">${escHtml(ins.title||ins.id||'?')}</div>
+                <div class="urgency-badge urgency-${ins.urgency||'MEDIUM'}">${ins.urgency||'MEDIUM'}</div>
+            </div>
+            ${ins.metric_impact && ins.metric_impact !== 'N/A' ? `
+            <div style="display:flex;align-items:center;gap:.5rem;margin:.3rem 0 .5rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:.45rem .65rem;">
+                <span style="font-size:1rem;">📉</span>
+                <span style="font-size:.83rem;font-weight:600;color:#fca5a5;">${escHtml(ins.metric_impact)}</span>
+            </div>` : ''}
+            <div class="insight-body">${escHtml(ins.description||ins.summary||'')}</div>
+            ${ins.root_cause?`<div class="section-label">Root Cause</div><div class="insight-body">${escHtml(ins.root_cause)}</div>`:''}
+            ${ins.forward_implication?`<div class="section-label">If No Action Taken</div><div class="insight-body" style="color:#fbbf24;">${escHtml(ins.forward_implication)}</div>`:''}
+            <div class="insight-meta">
+                ${ins.confidence!=null?`<div class="insight-meta-item">Confidence <span>${Math.round(ins.confidence*100)}%</span></div>`:''}
+                ${ins.supporting_sources?.length?`<div class="insight-meta-item">Sources <span>${ins.supporting_sources.length}</span></div>`:''}
+                ${ins.signal_type?`<div class="insight-meta-item">Type <span>${escHtml(ins.signal_type)}</span></div>`:''}
+                ${ins.time_horizon?`<div class="insight-meta-item">Horizon <span>${escHtml(ins.time_horizon)}</span></div>`:''}
+            </div>
+        </div>`).join('');
+    const excl = stage3.excluded_blocks_reason||'';
+    document.getElementById('pane-insights').innerHTML = html + (excl?`<div class="section-label">Exclusions</div><div style="font-size:.8rem;color:var(--muted);background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:8px;padding:.65rem;">${escHtml(excl)}</div>`:'');
+}
+
+function renderActions(data) {
+    const timeline = (data.final_report||{}).action_timeline || [];
+    if (!timeline.length) { document.getElementById('pane-actions').innerHTML='<div class="empty-state"><div class="icon">⚡</div><p>No actions in result.</p></div>'; return; }
+    const html = timeline.map((act,idx)=>{
+        const st = act.status||'SUCCESS';
+        const isLast = idx===timeline.length-1;
+        const dotCls = ['RECOVERED','UNBLOCKED_AND_SUCCEEDED'].includes(st)?'dot-recovered':st==='FAILED'?'dot-failed':st==='SKIPPED'?'dot-skipped':'dot-success';
+        const lineCls = dotCls.replace('dot-','line-');
+        const pillCls = st==='UNBLOCKED_AND_SUCCEEDED'?'pill-UNBLOCKED':'pill-'+st;
+        return `
+        <div class="action-step">
+            <div class="step-connector">
+                <div class="step-dot ${dotCls}">${act.step||idx+1}</div>
+                ${!isLast?`<div class="step-line ${lineCls}"></div>`:''}
+            </div>
+            <div class="action-card">
+                <div class="action-card-top">
+                    <div class="action-title">${escHtml(act.title||act.action_id||'?')}</div>
+                    <div class="action-status-pill ${pillCls}">${st.replace(/_/g,' ')}</div>
+                </div>
+                <div class="action-meta"><span>${act.type||''}</span>${act.duration_ms?`<span>${act.duration_ms}ms</span>`:''}</div>
+                ${act.note?`<div class="action-note">${escHtml(act.note)}</div>`:''}
+            </div>
+        </div>`;
+    }).join('');
+    document.getElementById('pane-actions').innerHTML = html;
+}
+
+function renderPlan(data) {
+    const actions = (data.action_plan || {}).action_plan || [];
+    if (!actions.length) { document.getElementById('pane-plan').innerHTML='<div class="empty-state"><div class="icon">🗂️</div><p>No action plan generated.</p></div>'; return; }
+    const typeClass = t => `plan-type-${(t||'ANALYZE').toUpperCase()}`;
+    const csClass   = s => `plan-cs-${(s||'FEASIBLE').toUpperCase()}`;
+    document.getElementById('pane-plan').innerHTML = actions.map(a => {
+        const deps = (a.depends_on||[]).length ? `Depends on: ${a.depends_on.join(', ')}` : 'No dependencies';
+        const dur  = a.estimated_duration_minutes ? `~${a.estimated_duration_minutes} min` : '';
+        const budget = (a.constraints||{}).budget_limit_usd != null ? `$${a.constraints.budget_limit_usd} budget` : '';
+        const deadline = (a.constraints||{}).deadline ? `Due in ${a.constraints.deadline}` : '';
+        const fallback = a.fallback ? `<div class="plan-fallback">🔁 Fallback: ${escHtml(a.fallback.title)} → ${escHtml(a.fallback.target_system)}</div>` : '';
+        const cs = (a.constraint_status||'FEASIBLE').toUpperCase();
+        const csLabel = cs === 'FEASIBLE' ? '✅ Approved — ready to execute'
+                      : cs === 'MODIFIED' ? '⚠️ Modified — requires adjustment'
+                      : '❌ Rejected — cannot proceed';
+        const csReason = a.constraint_reason ? `<div class="plan-cs-reason plan-cs-reason-${cs}">${csLabel}: ${escHtml(a.constraint_reason)}</div>` : '';
+        const metricBefore = a.metric_before ? `
+            <div style="margin:.4rem 0 .2rem;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);">Problem Being Solved</div>
+            <div style="font-size:.82rem;color:rgba(241,245,249,.6);background:rgba(0,0,0,.2);border-radius:6px;padding:.35rem .55rem;margin-bottom:.35rem;">${escHtml(a.metric_before)}</div>` : '';
+        const expectedOutcome = a.expected_outcome ? `
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:.2rem;">Expected Outcome</div>
+            <div style="font-size:.82rem;color:#34d399;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:6px;padding:.35rem .55rem;margin-bottom:.35rem;">${escHtml(a.expected_outcome)}</div>` : '';
+        return `
+        <div class="plan-step">
+            <div class="plan-step-num">${a.step||'?'}</div>
+            <div class="plan-step-body">
+                <div class="plan-step-header">
+                    <div class="plan-step-title">${escHtml(a.title||'Untitled')}</div>
+                    <span class="plan-type-badge ${typeClass(a.type)}">${escHtml(a.type||'')}</span>
+                    <span class="${csClass(a.constraint_status)}">${escHtml(a.constraint_status||'')}</span>
+                </div>
+                <div class="plan-desc">${escHtml(a.description||'')}</div>
+                ${csReason}
+                ${metricBefore}
+                ${expectedOutcome}
+                <div class="plan-meta">
+                    <span>🎯 ${escHtml(a.target_system||'')}</span>
+                    <span>👤 ${escHtml(a.stakeholder||'')}</span>
+                    ${dur ? `<span>⏱ ${dur}</span>` : ''}
+                    ${budget ? `<span>💰 ${budget}</span>` : ''}
+                    ${deadline ? `<span>📅 ${deadline}</span>` : ''}
+                    <span>🔗 ${escHtml(deps)}</span>
+                </div>
+                ${fallback}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderBeforeAfter(data) {
+    const ba = (data.final_report||{}).before_after || [];
+    if (!ba.length) { document.getElementById('pane-beforeafter').innerHTML='<div class="empty-state"><div class="icon">�</div><p>No results yet.</p></div>'; return; }
+    const pos  = ba.filter(r=>r.change_type==='POSITIVE').length;
+    const part = ba.filter(r=>r.change_type==='PARTIAL').length;
+    const neg  = ba.filter(r=>r.change_type==='NEGATIVE').length;
+    const stepClass = ct => ct==='POSITIVE'?'rt-step-pos':ct==='PARTIAL'?'rt-step-part':'rt-step-neg';
+    const rows = ba.map((row,i) => {
+        const ct = row.change_type||'POSITIVE';
+        const icon = ct==='POSITIVE'?'✅':ct==='PARTIAL'?'⚠️':'❌';
+        return `<tr>
+            <td style="text-align:center;"><span class="rt-step ${stepClass(ct)}">${i+1}</span></td>
+            <td style="font-weight:600;font-size:.84rem;">${icon} ${escHtml(row.system||'?')}</td>
+            <td class="rt-before">${escHtml(row.before||'No data')}</td>
+            <td style="color:var(--muted);font-size:1.1rem;text-align:center;">→</td>
+            <td class="rt-after-${ct}">${escHtml(row.after||'No change')}</td>
+            <td><span class="rt-badge rt-badge-${ct}">${ct}</span></td>
+        </tr>`;
+    }).join('');
+    document.getElementById('pane-beforeafter').innerHTML = `
+        <div class="result-summary">
+            <div class="result-metric"><span class="result-metric-num result-num-pos">${pos}</span><span class="result-metric-label">Succeeded</span></div>
+            <div class="result-metric"><span class="result-metric-num result-num-part">${part}</span><span class="result-metric-label">Recovered</span></div>
+            <div class="result-metric"><span class="result-metric-num result-num-neg">${neg}</span><span class="result-metric-label">Failed / Skipped</span></div>
+            <div class="result-metric"><span class="result-metric-num" style="color:#93c5fd">${ba.length}</span><span class="result-metric-label">Total Steps</span></div>
+        </div>
+        <div class="result-table-wrap">
+            <table class="result-table">
+                <thead><tr><th>#</th><th>Action</th><th>Situation Before</th><th></th><th>Outcome After</th><th>Status</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+}
+
+function renderRaw(data) {
+    document.getElementById('pane-raw').innerHTML = '<div class="json-view">'+syntaxHighlight(data)+'</div>';
+}
+
+function syntaxHighlight(json) {
+    if (typeof json!=='string') json=JSON.stringify(json,null,2);
+    return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{
+            let c='jn';
+            if(/^"/.test(m)) c=/:$/.test(m)?'jk':'js';
+            else if(/true|false|null/.test(m)) c='jb';
+            return `<span class="${c}">${m}</span>`;
+        });
+}
+
+renderSources();
+</script>
+</body>
+</html>

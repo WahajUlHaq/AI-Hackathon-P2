@@ -1,0 +1,38 @@
+# Tool Calls: Stage 3 — Insight Agent
+
+- `view_file` (1)
+  - **Target:** `c:\Users\Wahaj\Desktop\New folder\agent3_insight.md`
+  - **Purpose:** Read the primary specification document for Stage 3 requirements and schemas.
+- `list_dir` (2)
+  - **Target:** `c:\Users\Wahaj\Desktop\New folder` and `c:\Users\Wahaj\Desktop\New folder\agents`
+  - **Purpose:** Assess existing codebase context, locating prior agent stages.
+- `view_file` (2)
+  - **Target:** `agents/agent2_flag.py`
+  - **Purpose:** Understand the output signature of Agent 2 to ensure Agent 3 correctly consumes `verified_pool`.
+- `write_to_file` (1)
+  - **Target:** `agents/agent3_insight.py`
+  - **Purpose:** Create the core logic for the Insight Agent module.
+- `view_file` (3)
+  - **Target:** `demo_stage2.py`
+  - **Purpose:** Understand how earlier stages are orchestrated to replicate the execution flow.
+- `write_to_file` (2)
+  - **Target:** `demo_stage3.py`
+  - **Purpose:** Create the testing and orchestration harness for the Stage 3 demo.
+- `run_command` (1)
+  - **Command:** `python demo_stage3.py`
+  - **Purpose:** Execute the end-to-end pipeline.
+- `command_status` (1)
+  - **Command ID:** `18072b5e-b00a-4b98-8571-3ed611351fa2`
+  - **Purpose:** Retrieve test results.
+- `view_file` (4)
+  - **Target:** `demo_stage1.py`
+  - **Purpose:** Investigate data origins to trace lower-than-expected confidence scores.
+- `replace_file_content` (1)
+  - **Target:** `agents/agent3_insight.py`
+  - **Purpose:** Inject the urgency weight formula modification.
+- `run_command` (2)
+  - **Command:** `python demo_stage3.py`
+  - **Purpose:** Validate formula correction.
+- `write_to_file` (3-11)
+  - **Target:** `traces/stage3_insight_agent/*.md`
+  - **Purpose:** Generate full process documentation.
